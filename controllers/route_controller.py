@@ -53,6 +53,8 @@ def generate_pdf(sheet_type):
     elif sheet_type == "reliquia":
         if not form_data.get('FAMILIAR'):
             form_data['FAMILIAR'] = f"Familiar de {form_data.get('NOME')}"
+            form_data['SUB_MATRIZ'] = form_data.get('SUB_MATRIZ') or "NENHUMA"
+
 
     pdf_buffer = pdf_generator.build_pdf(sheet_type, form_data)
     filename = f"Ficha_{form_data.get('NOME', 'SemNome').replace(' ', '_')}.pdf"

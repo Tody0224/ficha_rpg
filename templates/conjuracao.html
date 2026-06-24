@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <h1>🔮 CONJURAÇÃO</h1>
+    <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
+</div>
+
+<div style="margin-bottom: 15px;">
+    <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
+</div>
+
+<form id="sheetForm" action="/generate_pdf/{{ sheet_type }}" method="POST">
+    
+    <!-- IDENTIFICAÇÃO -->
+    <div class="card">
+        <h3>REGISTRO MÍSTICO</h3>
+        <div class="form-group">
+            <label>Nome da Conjuração *</label>
+            <input type="text" name="NOME" id="NOME" required>
+        </div>
+        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+            <div class="form-group">
+                <label>Matriz Fundamental *</label>
+                <select name="MATRIZ" id="MATRIZ" required>
+                    <option value="">Selecione...</option>
+                    {% for m in ['INCÊNDIO', 'INUNDAÇÃO', 'TEMPESTADE', 'CICLONE', 'TERREMOTO', 'NEUTRO', 'MARCIAL', 'FAUNA', 'FLORA', 'GUARDIÃO', 'FÁBULA', 'SÓLIDO', 'MALEÁVEL', 'ESCURO', 'ESPIRITUAL', 'MENTAL'] %}
+                    <option value="{{ m }}">{{ m }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Sub-Matriz (Opcional)</label>
+                <select name="SUB_MATRIZ" id="SUB_MATRIZ">
+                    <option value="">NENHUMA</option>
+                    {% for sm in ['ESPIRAL', 'ONDA', 'FÚRIA', 'ESPORO', 'TEMPERATURA'] %}
+                    <option value="{{ sm }}">{{ sm }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLUXO DE CONEXÃO E AÇÃO -->
+    <div class="card">
+        <h3>CUSTOS E ECONOMIA DE AÇÃO</h3>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>Custo de Conexão *</label>
+                <input type="number" name="CUSTO" id="CUSTO" value="0" min="0" required>
+            </div>
+            <div class="form-group">
+                <label>Ganho de Conexão *</label>
+                <input type="number" name="GANHO_CONEXAO" id="GANHO_CONEXAO" value="0" min="0" required>
+            </div>
+            <div class="form-group">
+                <label>Gasto de Ação *</label>
+                <select name="GASTO_ACAO" id="GASTO_ACAO" required>
+                    <option value="">Selecione...</option>
+                    <option value="AÇÃO DE LOCOMOÇÃO">AÇÃO DE LOCOMOÇÃO</option>
+                    <option value="AÇÃO COMPLEXA">AÇÃO COMPLEXA</option>
+                    <option value="AÇÃO EXTRA">AÇÃO EXTRA</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- APLICAÇÃO E ALCANCE -->
+    <div class="card">
+        <h3>PROPRIEDADES DE APLICAÇÃO</h3>
+        <div class="grid-3">
+            <div class="form-group">
+                <label>Alcance *</label>
+                <select name="ALCANCE" id="ALCANCE" required>
+                    <option value="">Selecione...</option>
+                    <option value="PESSOAL">PESSOAL</option>
+                    <option value="CORPO A CORPO">CORPO A CORPO</option>
+                    <option value="CURTO">CURTO</option>
+                    <option value="MÉDIO">MÉDIO</option>
+                    <option value="LONGO">LONGO</option>
+                    <option value="EXTREMO">EXTREMO</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Área de Efeito *</label>
+                <select name="AREA" id="AREA" required>
+                    <option value="">Selecione...</option>
+                    <option value="ALVOS">ALVO</option>
+                    <option value="LINHA">LINHA</option>
+                    <option value="CONE">CONE</option>
+                    <option value="CÍRCULO">CÍRCULO</option>
+                    <option value="ZONA">ZONA</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Dano (Formato XdY ou 0) *</label>
+                <input type="text" name="DANO" id="DANO" value="0" placeholder="Ex: 3d6, 1d10, 0" required>
+            </div>
+        </div>
+    </div>
+
+    <!-- MECÂNICAS E NARRATIVA -->
+    <div class="card">
+        <h3>EFEITOS MECÂNICOS</h3>
+        <div class="form-group">
+            <label>Lista de Efeitos (Condições, Manobras ou Efeitos Personalizados)</label>
+            <textarea name="EFEITOS" id="EFEITOS" rows="3" placeholder="Insira as regras mecânicas, penalidades, condições ou bónus aplicados..."></textarea>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>DESCRIÇÃO NARRATIVA</h3>
+        <div class="form-group">
+            <label>Descrição Visual e Atmosférica *</label>
+            <textarea name="DESCRICAO" id="DESCRICAO" rows="4" placeholder="Descreva a manifestação visual, sons e o impacto narrativo da conjuração no ambiente..." required></textarea>
+        </div>
+    </div>
+
+    <button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
+</form>
+
+<script>
+function activateTestMode() {
+    fetch('/api/test_mode/{{ sheet_type }}')
+    .then(r => r.json())
+    .then(data => {
+        // Mapeamento corrigido para bater exatamente com o padrão das chaves vindas do Python
+        document.getElementById('NOME').value = data.v_nome || data.NOME;
+        document.getElementById('MATRIZ').value = data.v_matriz || data.MATRIZ;
+        document.getElementById('SUB_MATRIZ').value = data.v_sub_matriz || data.SUB_MATRIZ || "";
+        document.getElementById('CUSTO').value = data.v_custo !== undefined ? data.v_custo : data.CUSTO;
+        
+        // CORREÇÃO: Garante o preenchimento mesmo se o backend enviar com ou sem o prefixo 'v_'
+        document.getElementById('GANHO_CONEXAO').value = data.v_ganho_conexao !== undefined ? data.v_ganho_conexao : (data.GANHO_CONEXAO || 0);
+        document.getElementById('GASTO_ACAO').value = data.v_gasto_acao || data.GASTO_ACAO || "";
+        
+        document.getElementById('ALCANCE').value = data.v_alcance || data.ALCANCE;
+        document.getElementById('AREA').value = data.v_area || data.AREA;
+        document.getElementById('DANO').value = data.v_dano || data.DANO || "0";
+        
+        // Caixas de texto (Textareas)
+        document.getElementById('EFEITOS').value = data.ta_efeitos || data.EFEITOS || "Nenhum efeito mecânico adicional.";
+        document.getElementById('DESCRICAO').value = data.ta_descricao || data.DESCRICAO || "";
+    })
+    .catch(err => {
+        console.error("Erro ao rodar modo teste de conjuração:", err);
+        alert("Erro ao preencher os dados de teste. Verifica a consola do navegador.");
+    });
+}
+</script>
+{% endblock %}
