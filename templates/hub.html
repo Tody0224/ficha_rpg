@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="header">
+    <h1>✦ FICHAS RPG</h1>
+    <p style="color: var(--muted); margin: 5px 0 0 0;">Sistema de criação de personagens e artefatos</p>
+</div>
+
+<div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+    <div class="card">
+        <h3>⚔ CONJURADOR</h3>
+        <p style="color: var(--muted); font-size: 13px;">Personagem jogável com escola, atributos e perícias</p>
+        <a href="/create/conjurador" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
+    </div>
+    <div class="card">
+        <h3>✦ CONJURAÇÃO</h3>
+        <p style="color: var(--muted); font-size: 13px;">Habilidade sobrenatural vinculada a uma matriz</p>
+        <a href="/create/conjuracao" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
+    </div>
+    <div class="card">
+        <h3>🐾 FAMILIAR</h3>
+        <p style="color: var(--muted); font-size: 13px;">Criatura sobrenatural vinculada à relíquia</p>
+        <a href="/create/familiar" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
+    </div>
+    <div class="card">
+        <h3>💎 RELÍQUIA</h3>
+        <p style="color: var(--muted); font-size: 13px;">Artefato mágico com núcleo e familiar vinculado</p>
+        <a href="/create/reliquia" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
+    </div>
+</div>
+{% endblock %}
