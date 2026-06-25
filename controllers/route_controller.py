@@ -56,11 +56,15 @@ def register():
             
     return render_template('register.html')
 
+# controllers/route_controller.py
+
 @bp.route('/logout')
 @login_required
 def logout():
     logout_user()
-    session.clear() # Limpa explicitamente o dicionário da sessão
+    # Limpa a sessão do Flask completamente
+    session.clear() 
+    # Força o redirecionamento para o login
     return redirect(url_for('routes.login'))
 
 
