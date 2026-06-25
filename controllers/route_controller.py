@@ -4,7 +4,9 @@ from models.character import CharacterModel
 from models.pdf_generator import PDFGeneratorModel
 from models.user import Usuario
 import constants
-import random  
+import random
+from datetime import datetime, timedelta
+import sqlite3
 
 bp = Blueprint('routes', __name__)
 pdf_generator = PDFGeneratorModel()
@@ -225,3 +227,18 @@ def api_test_mode(sheet_type):
         mock_data['DESCRICAO'] = "Uma relíquia antiga gerada automaticamente pelo modo teste, emanando uma sutil oscilação de energia fundamental."
 
     return jsonify(mock_data)
+
+@bp.route('/api/active_users')
+@login_required # Importante: só usuários logados podem ver quem está online
+def get_active_users():
+    # Define o limite de 5 minutos
+    limite = datetime.now() - timedelta(minutes=5)
+    
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    # A query busca quem foi ativo nos últimos 5 min
+    cursor.execute("SELECT username FROM usuarios WHERE last_active > ?", (limite,))
+    users = [row[0] for row in cursor.fetchall()]
+    conn.close()
+    
+    return jsonify({"count": len(users), "users": users})

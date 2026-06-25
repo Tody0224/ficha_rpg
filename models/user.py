@@ -1,4 +1,3 @@
-# models/user.py
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
@@ -11,39 +10,24 @@ class Usuario(UserMixin):
 
     @staticmethod
     def init_db():
-        """Cria as tabelas necessárias e atualiza as de fichas para o sistema de login."""
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
         
-        # 1. Cria a tabela de usuários
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL
+                password TEXT NOT NULL,
+                last_active TIMESTAMP
             );
         """)
         
-        # 2. Varre as tabelas de fichas para garantir que todas possuem o vínculo 'usuario_id'
         tabelas_fichas = ['conjuradores', 'conjuracoes', 'familiares', 'reliquias']
-        
         for tabela in tabelas_fichas:
-            # Verifica se a tabela já existe
             cursor.execute(f"PRAGMA table_info({tabela});")
             colunas = [col[1] for col in cursor.fetchall()]
-            
-            if colunas:
-                # Se a tabela existe mas não tem 'usuario_id', adiciona a coluna de forma segura
-                if 'usuario_id' not in colunas:
-                    try:
-                        cursor.execute(f"ALTER TABLE {tabela} ADD COLUMN usuario_id INTEGER DEFAULT 1;")
-                        print(f"📌 Coluna 'usuario_id' adicionada com sucesso à tabela '{tabela}'.")
-                    except sqlite3.OperationalError as e:
-                        print(f"⚠️ Erro ao atualizar tabela {tabela}: {e}")
-            else:
-                # Caso a tabela ainda vá ser criada do zero no seu CharacterModel,
-                # garanta que ela já nasça com o 'usuario_id INTEGER' na query de criação.
-                pass
+            if colunas and 'usuario_id' not in colunas:
+                cursor.execute(f"ALTER TABLE {tabela} ADD COLUMN usuario_id INTEGER DEFAULT 1;")
         
         conn.commit()
         conn.close()
@@ -55,9 +39,7 @@ class Usuario(UserMixin):
         cursor.execute("SELECT id, username, password FROM usuarios WHERE id = ?", (user_id,))
         row = cursor.fetchone()
         conn.close()
-        if row:
-            return Usuario(row[0], row[1], row[2])
-        return None
+        return Usuario(row[0], row[1], row[2]) if row else None
 
     @staticmethod
     def get_by_username(username):
@@ -66,9 +48,7 @@ class Usuario(UserMixin):
         cursor.execute("SELECT id, username, password FROM usuarios WHERE username = ?", (username.strip(),))
         row = cursor.fetchone()
         conn.close()
-        if row:
-            return Usuario(row[0], row[1], row[2])
-        return None
+        return Usuario(row[0], row[1], row[2]) if row else None
 
     @staticmethod
     def criar_usuario(username, password):
@@ -76,9 +56,7 @@ class Usuario(UserMixin):
         if not username or not password:
             return False
             
-        # Gera o hash seguro da senha
         pwd_hash = generate_password_hash(password)
-        
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
         try:
@@ -86,7 +64,7 @@ class Usuario(UserMixin):
             conn.commit()
             return True
         except sqlite3.IntegrityError:
-            return False  # Username já está em uso
+            return False
         finally:
             conn.close()
 
