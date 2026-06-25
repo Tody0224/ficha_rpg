@@ -1,10 +1,10 @@
-# controllers/route_controller.py
-from flask import Blueprint, render_template, request, jsonify, send_file, redirect, url_for, flash
+from flask import Blueprint, render_template, request, jsonify, send_file, redirect, url_for, flash, abort, session
 from flask_login import login_user, logout_user, login_required, current_user
 from models.character import CharacterModel
 from models.pdf_generator import PDFGeneratorModel
 from models.user import Usuario
 import constants
+import random  
 
 bp = Blueprint('routes', __name__)
 pdf_generator = PDFGeneratorModel()
@@ -24,7 +24,9 @@ def login():
         
         user = Usuario.get_by_username(username)
         if user and user.verificar_password(password):
-            login_user(user, remember=True)  # Mantém a sessão ativa
+            # CORREÇÃO: alterado de remember=True para remember=False
+            # Isso impede que um cookie persistente de longo prazo seja gerado.
+            login_user(user, remember=False)  
             return redirect(url_for('routes.hub'))
         else:
             flash('Usuário ou senha incorretos.', 'error')
@@ -56,6 +58,7 @@ def register():
 @login_required
 def logout():
     logout_user()
+    session.clear() # Limpa explicitamente o dicionário da sessão
     return redirect(url_for('routes.login'))
 
 
@@ -66,13 +69,11 @@ def logout():
 @bp.route('/')
 @login_required
 def hub():
-    # Coleta todas as fichas separadas por categoria para listar no Hub
-    # NOTA Opcional: Se seu CharacterModel já aceitar filtrar por usuário, passe `usuario_id=current_user.id`
     return render_template('hub.html', 
-                           conjuradores=CharacterModel.get_all_by_type('conjurador'),
-                           conjuracoes=CharacterModel.get_all_by_type('conjuracao'),
-                           familiares=CharacterModel.get_all_by_type('familiar'),
-                           reliquias=CharacterModel.get_all_by_type('reliquia'))
+                           conjuradores=CharacterModel.get_all_by_type('conjurador', current_user.id),
+                           conjuracoes=CharacterModel.get_all_by_type('conjuracao', current_user.id),
+                           familiares=CharacterModel.get_all_by_type('familiar', current_user.id),
+                           reliquias=CharacterModel.get_all_by_type('reliquia', current_user.id))
 
 @bp.route('/create/<sheet_type>')
 @login_required
@@ -84,13 +85,15 @@ def create_form(sheet_type):
 @bp.route('/edit/<sheet_type>/<int:entity_id>')
 @login_required
 def edit_entity(sheet_type, entity_id):
-    """Rota dinâmica de edição para qualquer tipo de ficha."""
     if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
         return "Not Found", 404
         
     entity = CharacterModel.get_entity_by_id(sheet_type, entity_id)
     if not entity:
         return f"{sheet_type.capitalize()} não encontrado(a)", 404
+        
+    if 'usuario_id' in entity.keys() and entity['usuario_id'] != current_user.id:
+        abort(403)
         
     return render_template(f'{sheet_type}.html', constants=constants, sheet_type=sheet_type, entity=entity)
 
@@ -101,13 +104,16 @@ def save_and_process(sheet_type, entity_id=None):
     if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
         return "Not Found", 404
 
+    if entity_id:
+        existing = CharacterModel.get_entity_by_id(sheet_type, entity_id)
+        if existing and 'usuario_id' in existing.keys() and existing['usuario_id'] != current_user.id:
+            abort(403)
+
     form_data = request.form.to_dict()
     action_type = request.form.get('action_type', 'pdf')
     
-    # Injeta automaticamente o ID do usuário logado para vincular o dono da ficha
     form_data['usuario_id'] = current_user.id
     
-    # Processamento de Regras de Negócio antes de salvar/gerar
     if sheet_type == "conjurador":
         form_data['PASSIVA_ESCOLA'] = constants.PASSIVAS_ESCOLAS.get(form_data.get('ESCOLA'), '')
         form_data['PERICIAS'] = ", ".join(request.form.getlist('pericias'))
@@ -132,23 +138,41 @@ def save_and_process(sheet_type, entity_id=None):
         if not form_data.get('FAMILIAR'):
             form_data['FAMILIAR'] = "Nenhum familiar vinculado"
 
-    # ─────────────────────────────────────────────────────────
-    # FLUXO SEGUIDO POR TIPO DE AÇÃO
-    # ─────────────────────────────────────────────────────────
     if action_type == "database":
-        # SÓ grava e redireciona se o usuário escolheu salvar no banco
         CharacterModel.save_entity(sheet_type, form_data, entity_id=entity_id)
         return redirect(url_for('routes.hub'))
 
-    # Caso contrário (Modo 'pdf'), gera APENAS o PDF na memória sem tocar na base de dados
     pdf_buffer = pdf_generator.build_pdf(sheet_type, form_data)
     filename = f"Ficha_{form_data.get('NOME', 'Ficha').replace(' ', '_')}.pdf"
     return send_file(pdf_buffer, mimetype='application/pdf', as_attachment=True, download_name=filename)
 
+
 @bp.route('/delete/<sheet_type>/<int:entity_id>', methods=['POST'])
 @login_required
 def delete_entity(sheet_type, entity_id):
-    """Rota polimórfica para remover qualquer tipo de ficha."""
+    existing = CharacterModel.get_entity_by_id(sheet_type, entity_id)
+    if not existing:
+        return "Não encontrado", 404
+        
+    try:
+        usuario_dono = None
+        if 'usuario_id' in existing.keys():
+            usuario_dono = existing['usuario_id']
+        elif 'USUARIO_ID' in existing.keys():
+            usuario_dono = existing['USUARIO_ID']
+            
+        if usuario_dono is None:
+            for chave in existing.keys():
+                if str(chave).upper() == 'USUARIO_ID':
+                    usuario_dono = existing[chave]
+                    break
+
+        if usuario_dono is not None and int(usuario_dono) != int(current_user.id):
+            abort(403)
+            
+    except Exception:
+        pass
+
     CharacterModel.delete_entity(sheet_type, entity_id)
     return redirect(url_for('routes.hub'))
 
@@ -169,8 +193,35 @@ def api_resources():
         return jsonify({"error": "Parâmetros inválidos"}), 400
 
 @bp.route('/api/test_mode/<sheet_type>')
+@login_required
 def api_test_mode(sheet_type):
     if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
         return jsonify({"error": "Tipo inválido"}), 400
+        
     mock_data = CharacterModel.get_test_data(sheet_type)
+    
+    if sheet_type in ['familiar', 'conjuracao']:
+        opcoes_sub = ["NENHUMA"] + list(getattr(constants, 'SUB_MATRIZES', []))
+        opcoes_sub = list(set([str(op).upper() for op in opcoes_sub if op]))
+        sub_sorteada = random.choice(opcoes_sub)
+        mock_data['SUB_MATRIZ'] = sub_sorteada
+        mock_data['v_sub'] = sub_sorteada
+
+    elif sheet_type == 'reliquia':
+        mock_data['NOME'] = f"Artefato Místico {random.randint(100, 999)}"
+        mock_data['NIVEL'] = random.choice(list(getattr(constants, 'NIVEIS_REL', ['I', 'II', 'III'])))
+        mock_data['NUCLEO'] = random.choice(list(getattr(constants, 'NUCLEOS_REL', []))) if getattr(constants, 'NUCLEOS_REL', []) else "NÚCLEO INSTÁVEL"
+        mock_data['MATRIZ'] = random.choice(list(getattr(constants, 'MATRIZES', ['NEUTRO'])))
+        
+        opcoes_sub = ["NENHUMA"] + list(getattr(constants, 'SUB_MATRIZES', []))
+        opcoes_sub = list(set([str(op).upper() for op in opcoes_sub if op]))
+        mock_data['SUB_MATRIZ'] = random.choice(opcoes_sub)
+        
+        mock_data['ALCANCE'] = random.choice(list(getattr(constants, 'ALCANCES', ['Curto'])))
+        mock_data['DANO'] = random.choice(['1d6', '1d8', '1d10', '2d4', '—'])
+        mock_data['FAMILIAR'] = random.choice(['', 'Pip', 'Serpente das Sombras', 'Grimório Alado'])
+        
+        mock_data['CONJURACOES'] = "Esfera de Fogo, Escudo Arcano (Gravados na estrutura física da Relíquia)."
+        mock_data['DESCRICAO'] = "Uma relíquia antiga gerada automaticamente pelo modo teste, emanando uma sutil oscilação de energia fundamental."
+
     return jsonify(mock_data)

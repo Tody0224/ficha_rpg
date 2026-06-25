@@ -103,8 +103,8 @@
     </div>
 
     <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
         <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
+        <button type="submit" class="btn" onclick="document.getElementById('action_type').value='pdf'">📄 Gerar PDF da Relíquia</button>
     </div>
 </form>
 
@@ -113,7 +113,6 @@ function activateTestMode() {
     fetch('/api/test_mode/{{ sheet_type }}')
     .then(r => r.json())
     .then(data => {
-        // Mapeamento polimórfico: aceita tanto Caixa Alta (backend atual) quanto chaves com prefixo 'v_'
         document.getElementById('NOME').value = data.NOME || data.v_nome || "";
         document.getElementById('NIVEL').value = data.NIVEL || data.v_nivel || "";
         document.getElementById('NUCLEO').value = data.NUCLEO || data.v_nucleo || "";
@@ -123,7 +122,6 @@ function activateTestMode() {
         document.getElementById('DANO').value = data.DANO || data.v_dano || "—";
         document.getElementById('FAMILIAR').value = data.FAMILIAR || data.v_familiar || "";
         
-        // Caixas de texto longas (com fallbacks resilientes)
         document.getElementById('CONJURACOES').value = data.CONJURACOES || data.ta_conjuracoes || "Nenhuma conjuração inserida.";
         document.getElementById('DESCRICAO').value = data.DESCRICAO || data.ta_desc || "Descrição gerada automaticamente em modo teste.";
     })

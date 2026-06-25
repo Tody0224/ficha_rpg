@@ -1,17 +1,52 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">
-    <h1>✦ FICHAS RPG</h1>
-    <p style="color: var(--muted); margin: 5px 0 0 0;">Sistema de criação de personagens e artefatos</p>
+<div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+        <h1>✦ FICHAS RPG</h1>
+        <p style="color: var(--muted); margin: 5px 0 0 0;">Grimório de {{ current_user.username.upper() }}</p>
+    </div>
+    <a href="/logout" style="color: #ff5555; text-decoration: none; font-size: 13px; font-weight: bold; background: rgba(255,85,85,0.1); padding: 8px 15px; border-radius: 6px;">🔑 Desconectar</a>
 </div>
 
-<div class="header" style="display: flex; justify-content: space-between; align-items: center;">
-    <h1>Grimório de {{ current_user.username.upper() }}</h1>
-    <a href="/logout" style="color: #ff5555; text-decoration: none; font-size: 13px; font-weight: bold;">🚪 Desconectar</a>
+<div class="card" style="margin-top: 30px; border-top: 3px solid #007bff;">
+    <h3>⚔ CONJURADORES SALVOS</h3>
+    {% if conjuradores %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+                    <th style="padding: 8px; color: var(--accent);">Nome</th>
+                    <th style="padding: 8px; color: var(--accent);">Escola</th>
+                    <th style="padding: 8px; color: var(--accent);">Grau</th>
+                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conjurador in conjuradores %}
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 8px; font-weight: bold;">👤 {{ conjurador.nome or conjurador.NOME or conjurador[1] }}</td>
+                    <td style="padding: 8px;">
+                        <span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">
+                            {{ conjurador.escola or conjurador.ESCOLA or conjurador[4] or "Não Informada" }}
+                        </span>
+                    </td>
+                    <td style="padding: 8px;">Grau {{ conjurador.grau or conjurador.GRAU or conjurador[3] }}</td>
+                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
+                        <a href="/edit/conjurador/{{ conjurador.id or conjurador.ID or conjurador[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
+                        <form action="/delete/conjurador/{{ conjurador.id or conjurador.ID or conjurador[0] }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar este conjurador?');">
+                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white;">Apagar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhum conjurador cadastrado localmente ainda.</p>
+    {% endif %}
 </div>
 
-<div class="card" style="margin-top: 30px; border-top: 3px solid var(--accent2);">
-    <h3>📂 FICHAS SALVAS NO BANCO DE DADOS</h3>
+<div class="card" style="margin-top: 20px; border-top: 3px solid var(--accent2);">
+    <h3>🔮 CONJURAÇÕES SALVAS</h3>
     {% if conjuracoes %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -25,13 +60,16 @@
             <tbody>
                 {% for conj in conjuracoes %}
                 <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px; font-weight: bold;">🔮 {{ conj.nome }}</td>
-                    <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ conj.matriz }}</span></td>
-                    <td style="padding: 8px;">{{ conj.custo }} Conexão</td>
+                    <td style="padding: 8px; font-weight: bold;">✨ {{ conj.nome or conj.NOME or conj[1] }}</td>
+                    <td style="padding: 8px;">
+                        <span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">
+                            {{ conj.matriz or conj.MATRIZ or conj[2] or "Sem Matriz" }}
+                        </span>
+                    </td>
+                    <td style="padding: 8px;">{{ conj.custo or conj.CUSTO or conj[4] }} Conexão</td>
                     <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
-                        <a href="/edit/conjuracao/{{ conj.id }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        
-                        <form action="/delete/conjuracao/{{ conj.id }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar esta conjuração?');">
+                        <a href="/edit/conjuracao/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
+                        <form action="/delete/conjuracao/{{ conj.id or conj.ID or conj[0] }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar esta conjuração?');">
                             <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white;">Apagar</button>
                         </form>
                     </td>
@@ -40,11 +78,77 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhuma ficha cadastrada localmente ainda.</p>
+        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhuma conjuração cadastrada localmente ainda.</p>
     {% endif %}
 </div>
 
-<div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+<div class="card" style="margin-top: 20px; border-top: 3px solid #28a745;">
+    <h3>🐾 FAMILIARES SALVOS</h3>
+    {% if familiares %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+                    <th style="padding: 8px; color: var(--accent);">Nome</th>
+                    <th style="padding: 8px; color: var(--accent);">Espécie</th>
+                    <th style="padding: 8px; color: var(--accent);">Ameaça</th>
+                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for familiar in familiares %}
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 8px; font-weight: bold;">🦊 {{ familiar.nome or familiar.NOME or familiar[1] }}</td>
+                    <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ familiar.especie or familiar.ESPECIE or familiar[2] }}</span></td>
+                    <td style="padding: 8px;">Nível {{ familiar.ameaca or familiar.AMEACA or familiar[3] }}</td>
+                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
+                        <a href="/edit/familiar/{{ familiar.id or familiar.ID or familiar[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
+                        <form action="/delete/familiar/{{ familiar.id or familiar.ID or familiar[0] }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar este familiar?');">
+                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white;">Apagar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhum familiar cadastrado localmente ainda.</p>
+    {% endif %}
+</div>
+
+<div class="card" style="margin-top: 20px; border-top: 3px solid #ffc107;">
+    <h3>💎 RELÍQUIAS SALVAS</h3>
+    {% if reliquias %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+                    <th style="padding: 8px; color: var(--accent);">Nome</th>
+                    <th style="padding: 8px; color: var(--accent);">Nível</th>
+                    <th style="padding: 8px; color: var(--accent);">Matriz</th>
+                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for reliquia in reliquias %}
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 8px; font-weight: bold;">💍 {{ reliquia.nome or reliquia.NOME or reliquia[1] }}</td>
+                    <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ reliquia.nivel or reliquia.NIVEL or reliquia[2] }}</span></td>
+                    <td style="padding: 8px;">{{ reliquia.matriz or reliquia.MATRIZ or reliquia[3] }}</td>
+                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
+                        <a href="/edit/reliquia/{{ reliquia.id or reliquia.ID or reliquia[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
+                        <form action="/delete/reliquia/{{ reliquia.id or reliquia.ID or reliquia[0] }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar esta relíquia?');">
+                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white;">Apagar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhuma relíquia cadastrada localmente ainda.</p>
+    {% endif %}
+</div>
+
+<div class="grid-3" style="grid-template-columns: repeat(2, 1fr); margin-top: 30px;">
     <div class="card">
         <h3>⚔ CONJURADOR</h3>
         <p style="color: var(--muted); font-size: 13px;">Personagem jogável com escola, atributos e perícias</p>

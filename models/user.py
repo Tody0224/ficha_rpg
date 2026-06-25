@@ -11,11 +11,11 @@ class Usuario(UserMixin):
 
     @staticmethod
     def init_db():
-        """Cria as tabelas necessárias se elas não existirem."""
+        """Cria as tabelas necessárias e atualiza as de fichas para o sistema de login."""
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
         
-        # Cria tabela de usuários
+        # 1. Cria a tabela de usuários
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,10 +24,26 @@ class Usuario(UserMixin):
             );
         """)
         
-        # Opcional: Se você quiser que as fichas fiquem vinculadas a quem as criou,
-        # você pode rodar um comando para garantir que a coluna usuario_id exista nas suas tabelas de fichas.
-        # Exemplo para conjurador:
-        # cursor.execute("ALTER TABLE conjuradores ADD COLUMN usuario_id INTEGER;")
+        # 2. Varre as tabelas de fichas para garantir que todas possuem o vínculo 'usuario_id'
+        tabelas_fichas = ['conjuradores', 'conjuracoes', 'familiares', 'reliquias']
+        
+        for tabela in tabelas_fichas:
+            # Verifica se a tabela já existe
+            cursor.execute(f"PRAGMA table_info({tabela});")
+            colunas = [col[1] for col in cursor.fetchall()]
+            
+            if colunas:
+                # Se a tabela existe mas não tem 'usuario_id', adiciona a coluna de forma segura
+                if 'usuario_id' not in colunas:
+                    try:
+                        cursor.execute(f"ALTER TABLE {tabela} ADD COLUMN usuario_id INTEGER DEFAULT 1;")
+                        print(f"📌 Coluna 'usuario_id' adicionada com sucesso à tabela '{tabela}'.")
+                    except sqlite3.OperationalError as e:
+                        print(f"⚠️ Erro ao atualizar tabela {tabela}: {e}")
+            else:
+                # Caso a tabela ainda vá ser criada do zero no seu CharacterModel,
+                # garanta que ela já nasça com o 'usuario_id INTEGER' na query de criação.
+                pass
         
         conn.commit()
         conn.close()

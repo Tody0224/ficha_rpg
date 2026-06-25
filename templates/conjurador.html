@@ -17,25 +17,26 @@
         <h3>IDENTIFICAÇÃO</h3>
         <div class="form-group">
             <label>Nome *</label>
-            <input type="text" name="NOME" id="NOME" value="{{ entity.nome if entity else '' }}" required>
+            <input type="text" name="NOME" id="NOME" value="{{ entity.nome if entity else (entity.NOME if entity else '') }}" required>
         </div>
         <div class="grid-3">
             <div class="form-group">
                 <label>Idade *</label>
-                <input type="number" name="IDADE" id="IDADE" value="{{ entity.idade if entity else '20' }}" required>
+                <input type="number" name="IDADE" id="IDADE" value="{{ entity.idade if entity else (entity.IDADE if entity else '20') }}" required>
             </div>
             <div class="form-group">
                 <label>Grau de Ressonância *</label>
-                <input type="number" name="GRAU" id="GRAU" value="{{ entity.grau if entity else '1' }}" required>
+                <input type="number" name="GRAU" id="GRAU" value="{{ entity.grau if entity else (entity.GRAU if entity else '1') }}" required>
             </div>
             <div class="form-group">
                 <label>Escola de Combate *</label>
-                <select name="ESCOLA" id="ESCOLA" required>
+                <select name="ESCOLA" id="ESCOLA" required onchange="document.getElementById('escola_hidden').value = this.value;">
                     <option value="">Selecione...</option>
                     {% for e in constants.ESCOLAS %}
-                    <option value="{{ e }}" {% if entity and entity.escola == e %}selected{% endif %}>{{ e }}</option>
+                    <option value="{{ e }}" {% if entity and (entity.escola == e or entity.ESCOLA == e) %}selected{% endif %}>{{ e }}</option>
                     {% endfor %}
                 </select>
+                <input type="hidden" name="escola" id="escola_hidden" value="{{ entity.escola if entity else (entity.ESCOLA if entity else '') }}">
             </div>
         </div>
     </div>
@@ -43,12 +44,12 @@
     <div class="card">
         <h3>DISTRIBUIÇÃO DE ATRIBUTOS</h3>
         <div class="grid-3">
-            <div class="form-group"><label>Brutalidade</label><input type="number" class="attr-input" name="BRUTALIDADE" id="BRUTALIDADE" value="{{ entity.brutalidade if entity else '1' }}" min="0" max="3" onchange="updatePericiasCount()"></div>
-            <div class="form-group"><label>Rapidez</label><input type="number" class="attr-input" name="RAPIDEZ" id="RAPIDEZ" value="{{ entity.rapidez if entity else '1' }}" min="0" max="3"></div>
-            <div class="form-group"><label>Vitalidade</label><input type="number" class="attr-input" name="VITALIDADE" id="VITALIDADE" value="{{ entity.vitalidade if entity else '1' }}" min="0" max="3" onchange="calculateResources()"></div>
-            <div class="form-group"><label>Influência</label><input type="number" class="attr-input" name="INFLUÊNCIA" id="INFLUÊNCIA" value="{{ entity.influencia if entity else '1' }}" min="0" max="3"></div>
-            <div class="form-group"><label>Sintonia</label><input type="number" class="attr-input" name="SINTONIA" id="SINTONIA" value="{{ entity.sintonia if entity else '1' }}" min="0" max="3" onchange="calculateResources()"></div>
-            <div class="form-group"><label>Astúcia</label><input type="number" class="attr-input" name="ASTÚCIA" id="ASTÚCIA" value="{{ entity.astucia if entity else '1' }}" min="0" max="3" onchange="updatePericiasCount()"></div>
+            <div class="form-group"><label>Brutalidade</label><input type="number" class="attr-input" name="BRUTALIDADE" id="BRUTALIDADE" value="{{ entity.brutalidade if entity else (entity.BRUTALIDADE if entity else '1') }}" min="0" max="3" onchange="updatePericiasCount()"></div>
+            <div class="form-group"><label>Rapidez</label><input type="number" class="attr-input" name="RAPIDEZ" id="RAPIDEZ" value="{{ entity.rapidez if entity else (entity.RAPIDEZ if entity else '1') }}" min="0" max="3"></div>
+            <div class="form-group"><label>Vitalidade</label><input type="number" class="attr-input" name="VITALIDADE" id="VITALIDADE" value="{{ entity.vitalidade if entity else (entity.VITALIDADE if entity else '1') }}" min="0" max="3" onchange="calculateResources()"></div>
+            <div class="form-group"><label>Influência</label><input type="number" class="attr-input" name="INFLUÊNCIA" id="INFLUÊNCIA" value="{{ entity.influencia if entity else (entity.INFLUÊNCIA if entity else '1') }}" min="0" max="3"></div>
+            <div class="form-group"><label>Sintonia</label><input type="number" class="attr-input" name="SINTONIA" id="SINTONIA" value="{{ entity.sintonia if entity else (entity.SINTONIA if entity else '1') }}" min="0" max="3" onchange="calculateResources()"></div>
+            <div class="form-group"><label>Astúcia</label><input type="number" class="attr-input" name="ASTÚCIA" id="ASTÚCIA" value="{{ entity.astucia if entity else (entity.ASTÚCIA if entity else '1') }}" min="0" max="3" onchange="updatePericiasCount()"></div>
         </div>
         <div style="margin-top: 15px; background: var(--panel); padding: 10px; border-radius: 4px;">
             <button type="button" class="btn btn-secondary" onclick="calculateResources()">⚄ Calcular Recursos</button>
@@ -62,7 +63,7 @@
             {% for p in constants.PERICIAS_DISP %}
             <div class="checkbox-item">
                 <input type="checkbox" name="pericias" value="{{ p }}" id="p_{{ p }}" onchange="validatePericiasLimit(this)"
-                {% if entity and p in entity.pericias %}checked{% endif %}>
+                {% if entity and (p in entity.pericias or (entity.PERICIAS and p in entity.PERICIAS)) %}checked{% endif %}>
                 <label style="margin: 0;" for="p_{{ p }}">{{ p }}</label>
             </div>
             {% endfor %}
@@ -71,24 +72,25 @@
 
     <div class="card">
         <h3>EXTRAS</h3>
-        <div class="form-group"><label>Background / Histórico</label><textarea name="BACKGROUND" id="BACKGROUND" rows="3">{{ entity.historio if entity else '' }}</textarea></div>
-        <div class="form-group"><label>Inventário Inicial</label><textarea name="INVENTARIO" id="INVENTARIO" rows="2">{{ entity.inventario if entity else '' }}</textarea></div>
-        <div class="form-group"><label>Nome da Relíquia Vinculada</label><input type="text" name="RELIQUIA" id="RELIQUIA" value="{{ entity.reliquia if entity else '' }}"></div>
+        <div class="form-group"><label>Background / Histórico</label><textarea name="BACKGROUND" id="BACKGROUND" rows="3">{{ entity.historio if entity else (entity.BACKGROUND if entity else '') }}</textarea></div>
+        <div class="form-group"><label>Inventário Inicial</label><textarea name="INVENTARIO" id="INVENTARIO" rows="2">{{ entity.inventario if entity else (entity.INVENTARIO if entity else '') }}</textarea></div>
+        <div class="form-group"><label>Nome da Relíquia Vinculada</label><input type="text" name="RELIQUIA" id="RELIQUIA" value="{{ entity.reliquia if entity else (entity.RELIQUIA if entity else '') }}"></div>
     </div>
 
     <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
+        <button type="submit" class="btn">📄 Gerar PDF da Conjurador</button>
         <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
     </div>
 </form>
 
 <script>
-// Calcula dinamicamente o total máximo permitido de perícias
-def_pericias_permitidas = 2 + 2; 
+// Base fixa de perícias permitidas pelo sistema (2 base + 2 escola)
+const BASE_PERICIAS = 4; 
 
 function getPericiasMax() {
-    const astucia = parseInt(document.getElementById('ASTÚCIA').value) || 0;
-    return def_pericias_permitidas + astucia;
+    const astuciaInput = document.getElementById('ASTÚCIA');
+    const astucia = astuciaInput ? (parseInt(astuciaInput.value) || 0) : 0;
+    return BASE_PERICIAS + astucia;
 }
 
 function updatePericiasCount() {
@@ -97,12 +99,9 @@ function updatePericiasCount() {
     const max = getPericiasMax();
     
     const output = document.getElementById('periciasCount');
-    output.innerText = `Selecionadas: ${selecionadas} / Máximo Permitido: ${max}`;
-    
-    if (selecionadas > max) {
-        output.style.color = "red";
-    } else {
-        output.style.color = "var(--accent2)";
+    if (output) {
+        output.innerText = `Selecionadas: ${selecionadas} / Máximo Permitido: ${max}`;
+        output.style.color = selecionadas > max ? "red" : "var(--accent2)";
     }
 }
 
@@ -112,7 +111,7 @@ function validatePericiasLimit(element) {
     const max = getPericiasMax();
     
     if (selecionadas > max) {
-        alert(`Limite excedido! O seu Conjurador só pode escolher até ${max} perícias (2 base + 2 escola + ${max - 4} de Astúcia).`);
+        alert(`Limite excedido! O seu Conjurador só pode escolher até ${max} perícias.`);
         element.checked = false;
     }
     updatePericiasCount();
@@ -131,7 +130,8 @@ function calculateResources() {
     })
     .then(r => r.json())
     .then(res => {
-        document.getElementById('resourceOutput').innerText = `Vida Máxima: ${res.vida} | Conexão Máxima: ${res.conexao}`;
+        const out = document.getElementById('resourceOutput');
+        if (out) out.innerText = `Vida Máxima: ${res.vida} | Conexão Máxima: ${res.conexao}`;
     });
 }
 
@@ -139,54 +139,55 @@ function activateTestMode() {
     fetch('/api/test_mode/{{ sheet_type }}')
     .then(r => r.json())
     .then(data => {
-        // Fallbacks inteligentes para dados do Conjurador
-        document.getElementById('NOME').value = data.NOME || data.v_nome || "";
-        document.getElementById('IDADE').value = data.IDADE || data.v_idade || 20;
-        document.getElementById('GRAU').value = data.GRAU || data.v_grau || 1;
-        document.getElementById('ESCOLA').value = data.ESCOLA || data.v_escola || "";
+        document.getElementById('NOME').value = data.NOME || data.nome || data.v_nome || "";
+        document.getElementById('IDADE').value = data.IDADE || data.idade || data.v_idade || 20;
+        document.getElementById('GRAU').value = data.GRAU || data.grau || data.v_grau || 1;
         
-        // Atributos (seja dentro de um sub-dicionário ou direto)
+        // Define o valor do select e atualiza o input oculto (escola) para enviar corretamente pro Python
+        const escolhaEscola = data.ESCOLA || data.escola || data.v_escola || "";
+        document.getElementById('ESCOLA').value = escolhaEscola;
+        document.getElementById('escola_hidden').value = escolhaEscola;
+        
+        // Carrega atributos primeiro para o cálculo do limite máximo de perícias estar correto
         const attrs = data.attributes || data;
         const keys = ['BRUTALIDADE', 'RAPIDEZ', 'VITALIDADE', 'INFLUÊNCIA', 'SINTONIA', 'ASTÚCIA'];
         keys.forEach(k => {
             const el = document.getElementById(k);
             if (el) {
-                el.value = attrs[k] !== undefined ? attrs[k] : (attrs[k.toLowerCase()] || 1);
+                el.value = attrs[k] !== undefined ? attrs[k] : (attrs[k.toLowerCase()] !== undefined ? attrs[k.toLowerCase()] : 1);
             }
         });
         
-        // Limpa e seleciona as perícias de teste de forma correta
+        // Reseta checkboxes
         document.querySelectorAll('input[name="pericias"]').forEach(cb => cb.checked = false);
         
+        // Pega lista de perícias
         const listaPericias = data.PERICIAS || data.pericias || [];
-        // Se vier como string do banco de dados, quebra em array
         const periciasArray = typeof listaPericias === 'string' ? listaPericias.split(', ') : listaPericias;
         
+        // Aplica as perícias respeitando o limite recalculado da Astúcia
         let inseridas = 0;
         const maxPermitido = getPericiasMax();
 
         periciasArray.forEach(p => {
-            // Tenta achar limpando espaços e aceitando variações de caixa alta/baixa
             const nomeLimpo = p.trim();
-            let el = document.getElementById('p_' + nomeLimpo) || document.getElementById('p_' + nomeLimpo.toUpperCase());
+            let el = document.getElementById('p_' + nomeLimpo) || document.getElementById('p_' + nomeLimpo.toUpperCase()) || document.getElementById('p_' + nomeLimpo.toLowerCase());
             if (el && inseridas < maxPermitido) {
                 el.checked = true;
                 inseridas++;
             }
         });
 
-        document.getElementById('BACKGROUND').value = data.BACKGROUND || data.background || "";
+        document.getElementById('BACKGROUND').value = data.BACKGROUND || data.background || data.historio || "";
         document.getElementById('INVENTARIO').value = data.INVENTARIO || data.inventario || "";
         document.getElementById('RELIQUIA').value = data.RELIQUIA || data.reliquia || "";
         
-        // Atualiza a interface gráfica dos cálculos e contadores
         calculateResources();
         updatePericiasCount();
     })
     .catch(err => console.error("Erro ao rodar modo teste de conjurador:", err));
 }
 
-// Executa automaticamente ao abrir a página para iniciar o contador
 document.addEventListener("DOMContentLoaded", function() {
     calculateResources();
     updatePericiasCount();

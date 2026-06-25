@@ -10,7 +10,7 @@ DB_PATH = "database.db"
 class CharacterModel:
     @staticmethod
     def init_db():
-        """Cria as tabelas para todas as entidades se não existirem."""
+        """Cria as tabelas para todas as entidades se não existirem, incluindo o vínculo de usuário."""
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
@@ -18,6 +18,7 @@ class CharacterModel:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS conjuracoes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario_id INTEGER NOT NULL DEFAULT 1,
                 nome TEXT NOT NULL, matriz TEXT NOT NULL, sub_matriz TEXT,
                 custo INTEGER NOT NULL, ganho_conexao INTEGER NOT NULL,
                 gasto_action TEXT NOT NULL, alcance TEXT NOT NULL, area TEXT NOT NULL,
@@ -29,7 +30,8 @@ class CharacterModel:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS conjuradores (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nome TEXT NOT NULL, idade INTEGER, grau INTEGER, school TEXT,
+                usuario_id INTEGER NOT NULL DEFAULT 1,
+                nome TEXT NOT NULL, idade INTEGER, grau INTEGER, escola TEXT,
                 brutalidade INTEGER, astucia INTEGER, sintonizacao INTEGER,
                 vitalidade INTEGER, sinto_atrib INTEGER, pericias TEXT,
                 passiva_escola TEXT, vida_max INTEGER, conexao_max INTEGER,
@@ -41,6 +43,7 @@ class CharacterModel:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS familiares (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario_id INTEGER NOT NULL DEFAULT 1,
                 nome TEXT NOT NULL, especie TEXT, ameaca INTEGER, porte TEXT, bioma TEXT,
                 matriz TEXT, sub_matriz TEXT, cobertura TEXT, coloracao TEXT,
                 temperamento TEXT, habito TEXT, socializacao TEXT,
@@ -52,6 +55,7 @@ class CharacterModel:
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS reliquias (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                usuario_id INTEGER NOT NULL DEFAULT 1,
                 nome TEXT NOT NULL, nivel TEXT, nucleo TEXT, matriz TEXT, sub_matriz TEXT,
                 alcance TEXT, dano TEXT, familiar TEXT, conjuracoes TEXT, descricao TEXT
             )
@@ -78,70 +82,86 @@ class CharacterModel:
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
+        # Cria um dicionário normalizado onde todas as chaves são MAIÚSCULAS e SEM ACENTO
+        d = {}
+        for k, v in data.items():
+            key_clean = str(k).upper().replace('Ú', 'U').replace('Ç', 'C').replace('Ã', 'A')
+            d[key_clean] = v
+            
+        # CORREÇÃO: Busca o usuario_id tanto na chave minúscula quanto na maiúscula higienizada
+        usuario_id = data.get('usuario_id') or d.get('USUARIO_ID') or 1
+        
         if sheet_type == "conjuracao":
+            nome = d.get('NOME') or "Sem Nome"
+            gasto_acao = d.get('GASTO_ACAO') or d.get('GASTO_ACTION') or "Ação Padrão"
+            
             if entity_id:
                 cursor.execute("""
                     UPDATE conjuracoes SET nome=?, matriz=?, sub_matriz=?, custo=?, ganho_conexao=?, 
-                    gasto_action=?, alcance=?, area=?, dano=?, efeitos=?, descricao=? WHERE id=?
-                """, (data.get('NOME'), data.get('MATRIZ'), data.get('SUB_MATRIZ'), int(data.get('CUSTO', 0)),
-                      int(data.get('GANHO_CONEXAO', 0)), data.get('GASTO_ACAO'), data.get('ALCANCE'), data.get('AREA'),
-                      data.get('DANO', '0'), data.get('EFEITOS'), data.get('DESCRICAO'), entity_id))
+                    gasto_action=?, alcance=?, area=?, dano=?, efeitos=?, descricao=?, usuario_id=? WHERE id=?
+                """, (nome, d.get('MATRIZ'), d.get('SUB_MATRIZ'), int(d.get('CUSTO', 0)),
+                      int(d.get('GANHO_CONEXAO', 0)), gasto_acao, d.get('ALCANCE'), d.get('AREA'),
+                      d.get('DANO', '0'), d.get('EFEITOS'), d.get('DESCRICAO'), usuario_id, entity_id))
             else:
                 cursor.execute("""
-                    INSERT INTO conjuracoes (nome, matriz, sub_matriz, custo, ganho_conexao, gasto_action, alcance, area, dano, efeitos, descricao)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (data.get('NOME'), data.get('MATRIZ'), data.get('SUB_MATRIZ'), int(data.get('CUSTO', 0)),
-                      int(data.get('GANHO_CONEXAO', 0)), data.get('GASTO_ACAO'), data.get('ALCANCE'), data.get('AREA'), 
-                      data.get('DANO', '0'), data.get('EFEITOS'), data.get('DESCRICAO')))
+                    INSERT INTO conjuracoes (nome, matriz, sub_matriz, custo, ganho_conexao, gasto_action, alcance, area, dano, efeitos, descricao, usuario_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (nome, d.get('MATRIZ'), d.get('SUB_MATRIZ'), int(d.get('CUSTO', 0)),
+                      int(d.get('GANHO_CONEXAO', 0)), gasto_acao, d.get('ALCANCE'), d.get('AREA'), 
+                      d.get('DANO', '0'), d.get('EFEITOS'), d.get('DESCRICAO'), usuario_id))
         
         elif sheet_type == "conjurador":
+            nome = d.get('NOME') or "Conjurador Sem Nome"
+            astucia = d.get('ASTUCIA') or 1
+            sintonia = d.get('SINTONIA') or d.get('SINTONIZACAO') or 1
+            
             if entity_id:
-                # Mudado de school=? para escola=?
                 cursor.execute("""
-                    UPDATE conjuradores SET nome=?, idade=?, grau=?, escola=?, brutalidade=?, astucia=?, sintonizacao=?,
-                    vitalidade=?, sinto_atrib=?, pericias=?, passiva_escola=?, vida_max=?, conexao_max=?, reliquia=?, historio=? WHERE id=?
-                """, (data.get('NOME'), int(data.get('IDADE', 20)), int(data.get('GRAU', 1)), data.get('ESCOLA'),
-                      int(data.get('BRUTALIDADE', 1)), int(data.get('ASTÚCIA', 1)), int(data.get('SINTONIZAÇÃO', 1)),
-                      int(data.get('VITALIDADE', 1)), int(data.get('SINTONIA_ATRIB', 1)), data.get('PERICIAS'),
-                      data.get('PASSIVA_ESCOLA'), int(data.get('VIDA_MAX', 10)), int(data.get('CONEXAO_MAX', 10)), data.get('RELIQUIA'), data.get('BACKGROUND'), entity_id))
+                    UPDATE conjuradores SET nome=?, idade=?, grau=?, school=?, brutalidade=?, astucia=?, sintonizacao=?,
+                    vitalidade=?, sinto_atrib=?, pericias=?, passiva_escola=?, vida_max=?, conexao_max=?, reliquia=?, historio=?, usuario_id=? WHERE id=?
+                """, (nome, int(d.get('IDADE', 20)), int(d.get('GRAU', 1)), d.get('ESCOLA'),
+                      int(d.get('BRUTALIDADE', 1)), int(astucia), int(sintonia),
+                      int(d.get('VITALIDADE', 1)), int(sintonia), d.get('PERICIAS'),
+                      d.get('PASSIVA_ESCOLA'), int(d.get('VIDA_MAX', 10)), int(d.get('CONEXAO_MAX', 10)), d.get('RELIQUIA'), d.get('BACKGROUND') or d.get('HISTORIO'), usuario_id, entity_id))
             else:
-                # Mudado de school para escola
                 cursor.execute("""
-                    INSERT INTO conjuradores (nome, idade, grau, escola, brutalidade, astucia, sintonizacao, vitalidade, sinto_atrib, pericias, passiva_escola, vida_max, conexao_max, reliquia, historio)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (data.get('NOME'), int(data.get('IDADE', 20)), int(data.get('GRAU', 1)), data.get('ESCOLA'),
-                      int(data.get('BRUTALIDADE', 1)), int(data.get('ASTÚCIA', 1)), int(data.get('SINTONIZAÇÃO', 1)),
-                      int(data.get('VITALIDADE', 1)), int(data.get('SINTONIA_ATRIB', 1)), data.get('PERICIAS'),
-                      data.get('PASSIVA_ESCOLA'), int(data.get('VIDA_MAX', 10)), int(data.get('CONEXAO_MAX', 10)), data.get('RELIQUIA'), data.get('BACKGROUND')))
+                    INSERT INTO conjuradores (nome, idade, grau, escola, brutalidade, astucia, sintonizacao, vitalidade, sinto_atrib, pericias, passiva_escola, vida_max, conexao_max, reliquia, historio, usuario_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (nome, int(d.get('IDADE', 20)), int(d.get('GRAU', 1)), d.get('ESCOLA'),
+                      int(d.get('BRUTALIDADE', 1)), int(astucia), int(sintonia),
+                      int(d.get('VITALIDADE', 1)), int(sintonia), d.get('PERICIAS'),
+                      d.get('PASSIVA_ESCOLA'), int(d.get('VIDA_MAX', 10)), int(d.get('CONEXAO_MAX', 10)), d.get('RELIQUIA'), d.get('BACKGROUND') or d.get('HISTORIO'), usuario_id))
 
         elif sheet_type == "familiar":
+            nome = d.get('NOME') or "Familiar Sem Nome"
             if entity_id:
                 cursor.execute("""
                     UPDATE familiares SET nome=?, especie=?, ameaca=?, porte=?, bioma=?, matriz=?, sub_matriz=?,
-                    cobertura=?, coloracao=?, temperamento=?, habito=?, socializacao=?, hab_fisicas=?, hab_matriz=?, descricao=? WHERE id=?
-                """, (data.get('NOME'), data.get('ESPECIE'), int(data.get('AMEACA', 1)), data.get('PORTE'), data.get('BIOMA'),
-                      data.get('MATRIZ'), data.get('SUB_MATRIZ'), data.get('COBERTURA'), data.get('COLORACAO'),
-                      data.get('TEMPERAMENTO'), data.get('HABITO'), data.get('SOCIALIZACAO'), data.get('HAB_FISICAS'), data.get('HAB_MATRIZ'), data.get('DESCRICAO'), entity_id))
+                    cobertura=?, coloracao=?, temperamento=?, habito=?, socializacao=?, hab_fisicas=?, hab_matriz=?, descricao=?, usuario_id=? WHERE id=?
+                """, (nome, d.get('ESPECIE'), int(d.get('AMEACA', 1)), d.get('PORTE'), d.get('BIOMA'),
+                      d.get('MATRIZ'), d.get('SUB_MATRIZ'), d.get('COBERTURA'), d.get('COLORACAO'),
+                      d.get('TEMPERAMENTO'), d.get('HABITO'), d.get('SOCIALIZACAO'), d.get('HAB_FISICAS'), d.get('HAB_MATRIZ'), d.get('DESCRICAO'), usuario_id, entity_id))
             else:
                 cursor.execute("""
-                    INSERT INTO familiares (nome, especie, ameaca, porte, bioma, matriz, sub_matriz, cobertura, coloracao, temperamento, habito, socializacao, hab_fisicas, hab_matriz, descricao)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (data.get('NOME'), data.get('ESPECIE'), int(data.get('AMEACA', 1)), data.get('PORTE'), data.get('BIOMA'),
-                      data.get('MATRIZ'), data.get('SUB_MATRIZ'), data.get('COBERTURA'), data.get('COLORACAO'),
-                      data.get('TEMPERAMENTO'), data.get('HABITO'), data.get('SOCIALIZACAO'), data.get('HAB_FISICAS'), data.get('HAB_MATRIZ'), data.get('DESCRICAO')))
+                    INSERT INTO familiares (nome, especie, ameaca, porte, bioma, matriz, sub_matriz, cobertura, coloracao, temperamento, habito, socializacao, hab_fisicas, hab_matriz, descricao, usuario_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (nome, d.get('ESPECIE'), int(d.get('AMEACA', 1)), d.get('PORTE'), d.get('BIOMA'),
+                      d.get('MATRIZ'), d.get('SUB_MATRIZ'), d.get('COBERTURA'), d.get('COLORACAO'),
+                      d.get('TEMPERAMENTO'), d.get('HABITO'), d.get('SOCIALIZACAO'), d.get('HAB_FISICAS'), d.get('HAB_MATRIZ'), d.get('DESCRICAO'), usuario_id))
 
         elif sheet_type == "reliquia":
+            nome = d.get('NOME') or "Relíquia Sem Nome"
             if entity_id:
                 cursor.execute("""
-                    UPDATE reliquias SET nome=?, nivel=?, nucleo=?, matriz=?, sub_matriz=?, alcance=?, dano=?, familiar=?, conjuracoes=?, descricao=? WHERE id=?
-                """, (data.get('NOME'), data.get('NIVEL'), data.get('NUCLEO'), data.get('MATRIZ'), data.get('SUB_MATRIZ'),
-                      data.get('ALCANCE'), data.get('DANO'), data.get('FAMILIAR'), data.get('CONJURACOES'), data.get('DESCRICAO'), entity_id))
+                    UPDATE reliquias SET nome=?, nivel=?, nucleo=?, matriz=?, sub_matriz=?, alcance=?, dano=?, familiar=?, conjuracoes=?, descricao=?, usuario_id=? WHERE id=?
+                """, (nome, d.get('NIVEL'), d.get('NUCLEO'), d.get('MATRIZ'), d.get('SUB_MATRIZ'),
+                      d.get('ALCANCE'), d.get('DANO'), d.get('FAMILIAR'), d.get('CONJURACOES'), d.get('DESCRICAO'), usuario_id, entity_id))
             else:
                 cursor.execute("""
-                    INSERT INTO reliquias (nome, nivel, nucleo, matriz, sub_matriz, alcance, dano, familiar, conjuracoes, descricao)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (data.get('NOME'), data.get('NIVEL'), data.get('NUCLEO'), data.get('MATRIZ'), data.get('SUB_MATRIZ'),
-                      data.get('ALCANCE'), data.get('DANO'), data.get('FAMILIAR'), data.get('CONJURACOES'), data.get('DESCRICAO')))
+                    INSERT INTO reliquias (nome, nivel, nucleo, matriz, sub_matriz, alcance, dano, familiar, conjuracoes, descricao, usuario_id)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (nome, d.get('NIVEL'), d.get('NUCLEO'), d.get('MATRIZ'), d.get('SUB_MATRIZ'),
+                      d.get('ALCANCE'), d.get('DANO'), d.get('FAMILIAR'), d.get('CONJURACOES'), d.get('DESCRICAO'), usuario_id))
 
         new_id = entity_id if entity_id else cursor.lastrowid
         conn.commit()
@@ -149,15 +169,41 @@ class CharacterModel:
         return new_id
 
     # ─────────────────────────────────────────────────────────
-    # LEITURA E REMOÇÃO POLIMÓRFICA
+    # LEITURA E REMOÇÃO POLIMÓRFICA FILTRADA POR USUÁRIO
     # ─────────────────────────────────────────────────────────
     @staticmethod
-    def get_all_by_type(sheet_type):
-        tabelas = {"conjuracao": "conjuracoes", "conjurador": "conjuradores", "familiar": "familiares", "reliquia": "reliquias"}
+    @staticmethod
+    @staticmethod
+    @staticmethod
+    def get_all_by_type(sheet_type, usuario_id):
+        tabelas = {
+            "conjuracao": "conjuracoes", 
+            "conjurador": "conjuradores", 
+            "familiar": "familiares", 
+            "reliquia": "reliquias"
+        }
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute(f"SELECT id, nome FROM {tabelas[sheet_type]} ORDER BY id DESC")
+        
+        # Seleciona as colunas exatas necessárias para a listagem de cada tipo no Hub
+        if sheet_type == "conjurador":
+            query = f"SELECT id, nome, escola FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
+            
+        elif sheet_type == "familiar":
+            query = f"SELECT id, nome, especie, ameaca, sub_matriz FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
+            
+        elif sheet_type == "conjuracao":
+            query = f"SELECT id, nome, sub_matriz FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
+            
+        elif sheet_type == "reliquia":
+            # CORREÇÃO: Busca explicitamente o nivel e a matriz para preencher a tabela das relíquias
+            query = f"SELECT id, nome, nivel, matriz FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
+            
+        else:
+            query = f"SELECT id, nome FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
+            
+        cursor.execute(query, (usuario_id,))
         rows = cursor.fetchall()
         conn.close()
         return rows
@@ -183,11 +229,10 @@ class CharacterModel:
         conn.close()
 
     # ─────────────────────────────────────────────────────────
-    # GERADOR DE DADOS PARA MODO TESTE
+    # GERADOR DE DADOS PARA MODO TESTE (SEM CONFLITO DE CHAVES)
     # ─────────────────────────────────────────────────────────
     @staticmethod
     def get_test_data(sheet_type):
-        """Gera dados fictícios e consistentes para o Modo Teste de cada ficha."""
         if sheet_type == "conjuracao":
             matriz_sorteada = random.choice(MATRIZES)
             sub_matrizes_validas = list(SUB_MATRIZES) + ['NENHUMA']
@@ -207,25 +252,23 @@ class CharacterModel:
             }
             
         if sheet_type == "conjurador":
-            # 1. Todos os atributos começam com 1 (Base obrigatória)
+            # Chaves sem acento para evitar incompatibilidade com o JS/HTML
             attrs = {
                 "BRUTALIDADE": 1,
                 "RAPIDEZ": 1,
                 "VITALIDADE": 1,
-                "INFLUÊNCIA": 1,
+                "INFLUENCIA": 1,
                 "SINTONIA": 1,
-                "ASTÚCIA": 1
+                "ASTUCIA": 1
             }
             
-            # 2. Regra: Exatamente 1 atributo pode começar em 0 (50% de hipótese de acontecer no teste)
             if random.choice([True, False]):
                 attr_zero = random.choice(list(attrs.keys()))
                 attrs[attr_zero] = 0
-                pontos_para_distribuir = 6  # 5 originais + 1 do atributo que foi a 0
+                pontos_para_distribuir = 6
             else:
-                pontos_para_distribuir = 5  # 5 originais
+                pontos_para_distribuir = 5
 
-            # 3. Distribui os pontos aleatoriamente respeitando o teto de 3
             chaves = list(attrs.keys())
             tentativas = 0
             while pontos_para_distribuir > 0 and tentativas < 100:
@@ -235,10 +278,7 @@ class CharacterModel:
                     pontos_para_distribuir -= 1
                 tentativas += 1
 
-            # 4. Agora que os atributos são válidos, extrai a Astúcia real gerada
-            astucia_sorteada = attrs["ASTÚCIA"]
-
-            # 5. CALCULA A QUANTIDADE CORRETA DE PERÍCIAS: 2 Base + 2 Escola + Astúcia
+            astucia_sorteada = attrs["ASTUCIA"]
             qtd_pericias = 2 + 2 + astucia_sorteada
 
             total_disponivel = len(constants.PERICIAS_DISP)
@@ -255,11 +295,11 @@ class CharacterModel:
                 "BRUTALIDADE": attrs["BRUTALIDADE"],
                 "RAPIDEZ": attrs["RAPIDEZ"],
                 "VITALIDADE": attrs["VITALIDADE"],
-                "INFLUÊNCIA": attrs["INFLUÊNCIA"],
+                "INFLUENCIA": attrs["INFLUENCIA"],
                 "SINTONIA": attrs["SINTONIA"],
-                "ASTÚCIA": astucia_sorteada,
+                "ASTUCIA": astucia_sorteada,
                 "PERICIAS": pericias_sorteadas,
-                "BACKGROUND": "Histórico gerado respeitando a distribuição exata de 5 pontos (ou 6 pontos se houver um atributo com valor 0).",
+                "BACKGROUND": "Histórico gerado respeitando a distribuição exata de pontos.",
                 "INVENTARIO": "Adaga ritualística, grimório de couro, rações de viagem.",
                 "RELIQUIA": ""
             }

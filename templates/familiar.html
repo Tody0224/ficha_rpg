@@ -22,7 +22,7 @@
         <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
             <div class="form-group">
                 <label>Espécie Base *</label>
-                <input type="text" name="ESPECIE" id="ESPECIE" placeholder="Ex: Lobo, Corvo, Serpente" value="{{ entity.especie if entity else '' }}" required>
+                <input type="text" name="ESPECIE" id="ESPECIE" placeholder="Ex: Lobo, Corvo, Serpente" value="{{ entity.especie if entity else (entity.ESPECIE if entity else '') }}" required>
             </div>
             <div class="form-group">
                 <label>Nível de Ameaça *</label>
@@ -137,7 +137,7 @@
     </div>
 
     <div style="display: flex; gap: 10px;">
-<button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
+        <button type="submit" class="btn">📄 Gerar PDF da familiar</button>
         <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
     </div>
 </form>
@@ -147,7 +147,6 @@ function activateTestMode() {
     fetch('/api/test_mode/{{ sheet_type }}')
     .then(r => r.json())
     .then(data => {
-        // Resiliência no mapeamento: aceita tanto chaves minúsculas (v_...) quanto as caixas altas diretas do backend
         document.getElementById('NOME').value = data.NOME || data.v_nome;
         document.getElementById('ESPECIE').value = data.ESPECIE || data.v_especie;
         document.getElementById('AMEACA').value = data.AMEACA || data.v_ameaca;
