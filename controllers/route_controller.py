@@ -9,9 +9,12 @@ pdf_generator = PDFGeneratorModel()
 
 @bp.route('/')
 def hub():
-    # Coleta as conjurações salvas para listar na página inicial
-    saved_conjuracoes = CharacterModel.get_all_conjuracoes()
-    return render_template('hub.html', conjuracoes=saved_conjuracoes)
+    # Coleta todas as fichas separadas por categoria para listar no Hub
+    return render_template('hub.html', 
+                           conjuradores=CharacterModel.get_all_by_type('conjurador'),
+                           conjuracoes=CharacterModel.get_all_by_type('conjuracao'),
+                           familiares=CharacterModel.get_all_by_type('familiar'),
+                           reliquias=CharacterModel.get_all_by_type('reliquia'))
 
 @bp.route('/create/<sheet_type>')
 def create_form(sheet_type):
@@ -19,53 +22,41 @@ def create_form(sheet_type):
         return "Not Found", 404
     return render_template(f'{sheet_type}.html', constants=constants, sheet_type=sheet_type, entity=None)
 
-@bp.route('/edit/conjuracao/<int:entity_id>')
-def edit_conjuracao(entity_id):
-    """Rota para carregar o formulário preenchido com dados do banco para edição."""
-    conjuracao = CharacterModel.get_conjuracao_by_id(entity_id)
-    if not conjuracao:
-        return "Conjuração não encontrada", 404
-    return render_template('conjuracao.html', constants=constants, sheet_type='conjuracao', entity=conjuracao)
-
-@bp.route('/delete/conjuracao/<int:entity_id>', methods=['POST'])
-def delete_conjuracao(entity_id):
-    """Rota para deletar uma conjuração e retornar ao Hub."""
-    CharacterModel.delete_conjuracao(entity_id)
-    return redirect(url_for('routes.hub'))
+@bp.route('/edit/<sheet_type>/<int:entity_id>')
+def edit_entity(sheet_type, entity_id):
+    """Rota dinâmica de edição para qualquer tipo de ficha."""
+    if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
+        return "Not Found", 404
+    entity = CharacterModel.get_entity_by_id(sheet_type, entity_id)
+    if not entity:
+        return f"{sheet_type.capitalize()} não encontrado(a)", 404
+    return render_template(f'{sheet_type}.html', constants=constants, sheet_type=sheet_type, entity=entity)
 
 @bp.route('/save_and_process/<sheet_type>', methods=['POST'])
 @bp.route('/save_and_process/<sheet_type>/<int:entity_id>', methods=['POST'])
 def save_and_process(sheet_type, entity_id=None):
-    """Salva os dados no banco de dados (se aplicável) e gera o PDF ou volta ao Hub."""
     if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
         return "Not Found", 404
 
     form_data = request.form.to_dict()
-    action_type = request.form.get('action_type', 'pdf') # 'pdf' ou 'database'
+    action_type = request.form.get('action_type', 'pdf')
     
-    # ─────────────────────────────────────────────────────────
-    # APLICAÇÃO DE REGRAS DE NEGÓCIO DA FICHA
-    # ─────────────────────────────────────────────────────────
+    # Processamento de Regras de Negócio antes de salvar/gerar
     if sheet_type == "conjurador":
         form_data['PASSIVA_ESCOLA'] = constants.PASSIVAS_ESCOLAS.get(form_data.get('ESCOLA'), '')
-        pericias_list = request.form.getlist('pericias')
-        form_data['PERICIAS'] = ", ".join(pericias_list)
-        # Recálculo seguro dos atributos de Vida e Conexão baseados no Grau e Atributos
+        form_data['PERICIAS'] = ", ".join(request.form.getlist('pericias'))
         res = CharacterModel.calculate_resources(
             int(form_data.get('GRAU', 1)), 
             int(form_data.get('VITALIDADE', 1)), 
-            int(form_data.get('SINTONIA', 1))
+            int(form_data.get('SINTONIA_ATRIB', 1))
         )
         form_data['VIDA_MAX'] = res['vida']
         form_data['CONEXAO_MAX'] = res['conexao']
         if not form_data.get('RELIQUIA'):
-            form_data['RELIQUIA'] = f"Relíquia de {form_data.get('NOME', 'Desconhecido')}"
+            form_data['RELIQUIA'] = f"Relíquia de {form_data.get('NOME')}"
             
     elif sheet_type == "conjuracao":
         form_data['SUB_MATRIZ'] = form_data.get('SUB_MATRIZ') or "NENHUMA"
-        form_data['GANHO'] = form_data.get('GANHO') or "NENHUM"
-        # Grava ou atualiza no banco de dados SQLite
-        entity_id = CharacterModel.save_conjuracao(form_data, conjuracao_id=entity_id)
         
     elif sheet_type == "familiar":
         form_data['MATRIZ'] = form_data.get('MATRIZ') or "NEUTRO"
@@ -76,21 +67,23 @@ def save_and_process(sheet_type, entity_id=None):
             form_data['FAMILIAR'] = "Nenhum familiar vinculado"
 
     # ─────────────────────────────────────────────────────────
-    # FLUXO DE RETORNO (BANCO DE DADOS VS EXPORTAÇÃO PDF)
+    # FLUXO SEGUIDO POR TIPO DE AÇÃO (CORRIGIDO)
     # ─────────────────────────────────────────────────────────
-    # Se o usuário clicou em "Salvar no Banco", redireciona para o Hub
     if action_type == "database":
+        # SÓ grava e redireciona se o utilizador escolheu salvar no banco
+        CharacterModel.save_entity(sheet_type, form_data, entity_id=entity_id)
         return redirect(url_for('routes.hub'))
 
-    # Caso contrário, prossegue para gerar e entregar o PDF dinamicamente
+    # Caso contrário (Modo 'pdf'), gera APENAS o PDF na memória sem tocar na base de dados
     pdf_buffer = pdf_generator.build_pdf(sheet_type, form_data)
     filename = f"Ficha_{form_data.get('NOME', 'Ficha').replace(' ', '_')}.pdf"
-    return send_file(
-        pdf_buffer, 
-        mimetype='application/pdf', 
-        as_attachment=True, 
-        download_name=filename
-    )
+    return send_file(pdf_buffer, mimetype='application/pdf', as_attachment=True, download_name=filename)
+
+@bp.route('/delete/<sheet_type>/<int:entity_id>', methods=['POST'])
+def delete_entity(sheet_type, entity_id):
+    """Rota polimórfica para remover qualquer tipo de ficha."""
+    CharacterModel.delete_entity(sheet_type, entity_id)
+    return redirect(url_for('routes.hub'))
 
 # ─────────────────────────────────────────────────────────
 # ENDPOINTS DA API (CÁLCULOS ASSÍNCRONOS E MODO TESTE)

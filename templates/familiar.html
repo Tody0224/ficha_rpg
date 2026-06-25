@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="header">
-    <h1>🐾 FAMILIAR</h1>
+    <h1>🐾 {% if entity %}EDITAR FAMILIAR{% else %}NOVO FAMILIAR{% endif %}</h1>
     <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
 </div>
 
@@ -17,16 +17,16 @@
         <h3>IDENTIFICAÇÃO DA CRIATURA</h3>
         <div class="form-group">
             <label>Nome do Familiar *</label>
-            <input type="text" name="NOME" id="NOME" required>
+            <input type="text" name="NOME" id="NOME" value="{{ entity.nome if entity else '' }}" required>
         </div>
         <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
             <div class="form-group">
                 <label>Espécie Base *</label>
-                <input type="text" name="ESPECIE" id="ESPECIE" placeholder="Ex: Lobo, Corvo, Serpente" required>
+                <input type="text" name="ESPECIE" id="ESPECIE" placeholder="Ex: Lobo, Corvo, Serpente" value="{{ entity.especie if entity else '' }}" required>
             </div>
             <div class="form-group">
                 <label>Nível de Ameaça *</label>
-                <input type="number" name="AMEACA" id="AMEACA" value="1" min="1" max="10" required>
+                <input type="number" name="AMEACA" id="AMEACA" value="{{ entity.ameaca if entity else '1' }}" min="1" max="10" required>
             </div>
         </div>
         <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
@@ -35,13 +35,13 @@
                 <select name="PORTE" id="PORTE" required>
                     <option value="">Selecione...</option>
                     {% for p in constants.PORTES %}
-                    <option value="{{ p }}">{{ p }}</option>
+                    <option value="{{ p }}" {% if entity and entity.porte == p %}selected{% endif %}>{{ p }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <label>Bioma Nativo *</label>
-                <input type="text" name="BIOMA" id="BIOMA" placeholder="Ex: Floresta, Cavernas" required>
+                <input type="text" name="BIOMA" id="BIOMA" placeholder="Ex: Floresta, Cavernas" value="{{ entity.bioma if entity else '' }}" required>
             </div>
         </div>
     </div>
@@ -54,7 +54,7 @@
                 <select name="MATRIZ" id="MATRIZ" required>
                     <option value="">Selecione...</option>
                     {% for m in constants.MATRIZES %}
-                    <option value="{{ m }}">{{ m }}</option>
+                    <option value="{{ m }}" {% if entity and entity.matriz == m %}selected{% endif %}>{{ m }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -64,7 +64,7 @@
                     <option value="">NENHUMA</option>
                     {% for s in constants.SUB_MATRIZES %}
                     {% if s != "NENHUMA" %}
-                    <option value="{{ s }}">{{ s }}</option>
+                    <option value="{{ s }}" {% if entity and entity.sub_matriz == s %}selected{% endif %}>{{ s }}</option>
                     {% endif %}
                     {% endfor %}
                 </select>
@@ -76,20 +76,20 @@
                 <select name="COBERTURA" id="COBERTURA" required>
                     <option value="">Selecione...</option>
                     {% for c in constants.COBERTURAS %}
-                    <option value="{{ c }}">{{ c }}</option>
+                    <option value="{{ c }}" {% if entity and entity.cobertura == c %}selected{% endif %}>{{ c }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <label>Coloração *</label>
-                <input type="text" name="COLORACAO" id="COLORACAO" required>
+                <input type="text" name="COLORACAO" id="COLORACAO" value="{{ entity.coloracao if entity else '' }}" required>
             </div>
             <div class="form-group">
                 <label>Temperamento *</label>
                 <select name="TEMPERAMENTO" id="TEMPERAMENTO" required>
                     <option value="">Selecione...</option>
                     {% for t in constants.TEMPERAMENTOS %}
-                    <option value="{{ t }}">{{ t }}</option>
+                    <option value="{{ t }}" {% if entity and entity.temperamento == t %}selected{% endif %}>{{ t }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -100,7 +100,7 @@
                 <select name="HABITO" id="HABITO" required>
                     <option value="">Selecione...</option>
                     {% for h in constants.HABITOS %}
-                    <option value="{{ h }}">{{ h }}</option>
+                    <option value="{{ h }}" {% if entity and entity.habito == h %}selected{% endif %}>{{ h }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -109,7 +109,7 @@
                 <select name="SOCIALIZACAO" id="SOCIALIZACAO" required>
                     <option value="">Selecione...</option>
                     {% for soc in constants.SOCIALIZACOES %}
-                    <option value="{{ soc }}">{{ soc }}</option>
+                    <option value="{{ soc }}" {% if entity and entity.socializacao == soc %}selected{% endif %}>{{ soc }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -120,11 +120,11 @@
         <h3>HABILIDADES E CAPACIDADES</h3>
         <div class="form-group">
             <label>Habilidades Físicas / Traços Biológicos</label>
-            <textarea name="HAB_FISICAS" id="HAB_FISICAS" rows="2" placeholder="Garras afiadas, camuflagem, voo..."></textarea>
+            <textarea name="HAB_FISICAS" id="HAB_FISICAS" rows="2" placeholder="Garras afiadas, camuflagem, voo...">{{ entity.hab_fisicas if entity else '' }}</textarea>
         </div>
         <div class="form-group">
             <label>Poderes da Matriz / Manifestações Sobrenaturais</label>
-            <textarea name="HAB_MATRIZ" id="HAB_MATRIZ" rows="2" placeholder="Explosões elementais, emanação de calor, telepatia elemental..."></textarea>
+            <textarea name="HAB_MATRIZ" id="HAB_MATRIZ" rows="2" placeholder="Explosões elementais, emanação de calor, telepatia elemental...">{{ entity.hab_matriz if entity else '' }}</textarea>
         </div>
     </div>
 
@@ -132,11 +132,14 @@
         <h3>DESCRIÇÃO GERAL</h3>
         <div class="form-group">
             <label>Descrição Biológica, Aparência e Histórico Narrativo</label>
-            <textarea name="DESCRICAO" id="DESCRICAO" rows="4" placeholder="Escreva aqui sobre o comportamento habitual, detalhes visuais marcantes e como este familiar interage com o ambiente e seu mestre..."></textarea>
+            <textarea name="DESCRICAO" id="DESCRICAO" rows="4" placeholder="Escreva aqui sobre o comportamento habitual, detalhes visuais marcantes e como este familiar interage com o ambiente e seu mestre...">{{ entity.descricao if entity else '' }}</textarea>
         </div>
     </div>
 
-    <button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
+    <div style="display: flex; gap: 10px;">
+<button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
+        <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
+    </div>
 </form>
 
 <script>
@@ -144,24 +147,26 @@ function activateTestMode() {
     fetch('/api/test_mode/{{ sheet_type }}')
     .then(r => r.json())
     .then(data => {
-        // Vincula as chaves aleatórias do back-end aos respectivos seletores
-        document.getElementById('NOME').value = data.v_nome;
-        document.getElementById('ESPECIE').value = data.v_especie;
-        document.getElementById('AMEACA').value = data.v_ameaca;
-        document.getElementById('PORTE').value = data.v_porte;
-        document.getElementById('BIOMA').value = data.v_bioma;
-        document.getElementById('MATRIZ').value = data.v_matriz;
-        document.getElementById('SUB_MATRIZ').value = data.v_sub || "";
-        document.getElementById('COBERTURA').value = data.v_cobertura;
-        document.getElementById('COLORACAO').value = data.v_coloracao;
-        document.getElementById('TEMPERAMENTO').value = data.v_temp;
-        document.getElementById('HABITO').value = data.v_habito;
-        document.getElementById('SOCIALIZACAO').value = data.v_social;
+        // Resiliência no mapeamento: aceita tanto chaves minúsculas (v_...) quanto as caixas altas diretas do backend
+        document.getElementById('NOME').value = data.NOME || data.v_nome;
+        document.getElementById('ESPECIE').value = data.ESPECIE || data.v_especie;
+        document.getElementById('AMEACA').value = data.AMEACA || data.v_ameaca;
+        document.getElementById('PORTE').value = data.PORTE || data.v_porte;
+        document.getElementById('BIOMA').value = data.BIOMA || data.v_bioma;
+        document.getElementById('MATRIZ').value = data.MATRIZ || data.v_matriz;
+        document.getElementById('SUB_MATRIZ').value = data.SUB_MATRIZ || data.v_sub || "NENHUMA";
+        document.getElementById('COBERTURA').value = data.COBERTURA || data.v_cobertura;
+        document.getElementById('COLORACAO').value = data.COLORACAO || data.v_coloracao;
+        document.getElementById('TEMPERAMENTO').value = data.TEMPERAMENTO || data.v_temp;
+        document.getElementById('HABITO').value = data.HABITO || data.v_habito;
+        document.getElementById('SOCIALIZACAO').value = data.SOCIALIZACAO || data.v_social;
         
-        // Alimenta as caixas de texto longas unificadas
-        document.getElementById('HAB_FISICAS').value = data.ta_fisicas;
-        document.getElementById('HAB_MATRIZ').value = data.ta_matriz;
-        document.getElementById('DESCRICAO').value = "Familiar gerado em modo teste com comportamento " + data.v_temp.toLowerCase() + " e hábitos " + data.v_habito.toLowerCase() + ".";
+        document.getElementById('HAB_FISICAS').value = data.HAB_FISICAS || data.ta_fisicas || "";
+        document.getElementById('HAB_MATRIZ').value = data.HAB_MATRIZ || data.ta_matriz || "";
+        
+        const temp = (data.TEMPERAMENTO || data.v_temp || "").toLowerCase();
+        const habito = (data.HABITO || data.v_habito || "").toLowerCase();
+        document.getElementById('DESCRICAO').value = data.DESCRICAO || `Familiar gerado em modo teste com comportamento ${temp} e hábitos ${habito}.`;
     })
     .catch(err => console.error("Erro ao rodar modo teste de familiar:", err));
 }

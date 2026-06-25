@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="header">
-    <h1>💎 RELÍQUIA</h1>
+    <h1>💎 {% if entity %}EDITAR RELÍQUIA{% else %}NOVA RELÍQUIA{% endif %}</h1>
     <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
 </div>
 
@@ -17,7 +17,7 @@
         <h3>IDENTIFICAÇÃO DO ARTEFATO</h3>
         <div class="form-group">
             <label>Nome da Relíquia *</label>
-            <input type="text" name="NOME" id="NOME" required>
+            <input type="text" name="NOME" id="NOME" value="{{ entity.nome if entity else '' }}" required>
         </div>
         <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
             <div class="form-group">
@@ -25,7 +25,7 @@
                 <select name="NIVEL" id="NIVEL" required>
                     <option value="">Selecione...</option>
                     {% for n in constants.NIVEIS_REL %}
-                    <option value="{{ n }}">{{ n }}</option>
+                    <option value="{{ n }}" {% if entity and entity.nivel == n %}selected{% endif %}>{{ n }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -34,7 +34,7 @@
                 <select name="NUCLEO" id="NUCLEO" required>
                     <option value="">Selecione...</option>
                     {% for nu in constants.NUCLEOS_REL %}
-                    <option value="{{ nu }}">{{ nu }}</option>
+                    <option value="{{ nu }}" {% if entity and entity.nucleo == nu %}selected{% endif %}>{{ nu }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -49,7 +49,7 @@
                 <select name="MATRIZ" id="MATRIZ" required>
                     <option value="">Selecione...</option>
                     {% for m in constants.MATRIZES %}
-                    <option value="{{ m }}">{{ m }}</option>
+                    <option value="{{ m }}" {% if entity and entity.matriz == m %}selected{% endif %}>{{ m }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -59,7 +59,7 @@
                     <option value="">NENHUMA</option>
                     {% for s in constants.SUB_MATRIZES %}
                     {% if s != "NENHUMA" %}
-                    <option value="{{ s }}">{{ s }}</option>
+                    <option value="{{ s }}" {% if entity and entity.sub_matriz == s %}selected{% endif %}>{{ s }}</option>
                     {% endif %}
                     {% endfor %}
                 </select>
@@ -75,18 +75,18 @@
                 <select name="ALCANCE" id="ALCANCE" required>
                     <option value="">Selecione...</option>
                     {% for a in constants.ALCANCES %}
-                    <option value="{{ a }}">{{ a }}</option>
+                    <option value="{{ a }}" {% if entity and entity.alcance == a %}selected{% endif %}>{{ a }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
                 <label>Dano Próprio (Ex: 1d6, 1d8, —)</label>
-                <input type="text" name="DANO" id="DANO" placeholder="—">
+                <input type="text" name="DANO" id="DANO" placeholder="—" value="{{ entity.dano if entity else '' }}">
             </div>
         </div>
         <div class="form-group" style="margin-top: 10px;">
             <label>Familiar Vinculado (Se aplicável)</label>
-            <input type="text" name="FAMILIAR" id="FAMILIAR" placeholder="Nome do Familiar vinculado a este artefato">
+            <input type="text" name="FAMILIAR" id="FAMILIAR" placeholder="Nome do Familiar vinculado a este artefato" value="{{ entity.familiar if entity else '' }}">
         </div>
     </div>
 
@@ -94,15 +94,18 @@
         <h3>DETALHAMENTO</h3>
         <div class="form-group">
             <label>Conjurações Gravadas / Matrizes Injetadas</label>
-            <textarea name="CONJURACOES" id="CONJURACOES" rows="3" placeholder="Liste as conjurações ou rituais fixados na relíquia..."></textarea>
+            <textarea name="CONJURACOES" id="CONJURACOES" rows="3" placeholder="Liste as conjurações ou rituais fixados na relíquia...">{{ entity.conjuracoes if entity else '' }}</textarea>
         </div>
         <div class="form-group">
             <label>Descrição Física e Histórico</label>
-            <textarea name="DESCRICAO" id="DESCRICAO" rows="3" placeholder="Aparência, material de origem, lendas ou propriedades narrativas..."></textarea>
+            <textarea name="DESCRICAO" id="DESCRICAO" rows="3" placeholder="Aparência, material de origem, lendas ou propriedades narrativas...">{{ entity.descricao if entity else '' }}</textarea>
         </div>
     </div>
 
-    <button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
+    <div style="display: flex; gap: 10px;">
+        <button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
+        <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
+    </div>
 </form>
 
 <script>
@@ -110,19 +113,19 @@ function activateTestMode() {
     fetch('/api/test_mode/{{ sheet_type }}')
     .then(r => r.json())
     .then(data => {
-        // Alimenta os inputs normais e seletores com base nas chaves geradas pelo back-end
-        document.getElementById('NOME').value = data.v_nome;
-        document.getElementById('NIVEL').value = data.v_nivel;
-        document.getElementById('NUCLEO').value = data.v_nucleo;
-        document.getElementById('MATRIZ').value = data.v_matriz;
-        document.getElementById('SUB_MATRIZ').value = data.v_sub || "";
-        document.getElementById('ALCANCE').value = data.v_alcance;
-        document.getElementById('DANO').value = data.v_dano;
-        document.getElementById('FAMILIAR').value = data.v_familiar || "";
+        // Mapeamento polimórfico: aceita tanto Caixa Alta (backend atual) quanto chaves com prefixo 'v_'
+        document.getElementById('NOME').value = data.NOME || data.v_nome || "";
+        document.getElementById('NIVEL').value = data.NIVEL || data.v_nivel || "";
+        document.getElementById('NUCLEO').value = data.NUCLEO || data.v_nucleo || "";
+        document.getElementById('MATRIZ').value = data.MATRIZ || data.v_matriz || "";
+        document.getElementById('SUB_MATRIZ').value = data.SUB_MATRIZ || data.v_sub || "NENHUMA";
+        document.getElementById('ALCANCE').value = data.ALCANCE || data.v_alcance || "";
+        document.getElementById('DANO').value = data.DANO || data.v_dano || "—";
+        document.getElementById('FAMILIAR').value = data.FAMILIAR || data.v_familiar || "";
         
-        // Alimenta as caixas de texto longas
-        document.getElementById('CONJURACOES').value = data.ta_conjuracoes;
-        document.getElementById('DESCRICAO').value = data.ta_desc;
+        // Caixas de texto longas (com fallbacks resilientes)
+        document.getElementById('CONJURACOES').value = data.CONJURACOES || data.ta_conjuracoes || "Nenhuma conjuração inserida.";
+        document.getElementById('DESCRICAO').value = data.DESCRICAO || data.ta_desc || "Descrição gerada automaticamente em modo teste.";
     })
     .catch(err => console.error("Erro ao rodar modo teste de relíquia:", err));
 }
