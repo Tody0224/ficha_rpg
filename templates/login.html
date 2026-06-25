@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<div style="max-width: 400px; margin: 80px auto; padding: 0 15px;">
+    <div class="card" style="border-top: 4px solid var(--accent);">
+        <h3 style="text-align: center; margin-bottom: 20px;">🔑 LOGIN DO CONJURADOR</h3>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div style="background: rgba(255, 85, 85, 0.1); color: #ff5555; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border-left: 3px solid #ff5555;">
+                {{ message }}
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/login">
+            <div class="form-group">
+                <label>Nome de Usuário</label>
+                <input type="text" name="username" placeholder="Seu nome místico..." required autocomplete="username">
+            </div>
+            <div class="form-group" style="margin-top: 15px;">
+                <label>Senha</label>
+                <input type="password" name="password" placeholder="Sua senha secreta..." required autocomplete="current-password">
+            </div>
+            <button type="submit" class="btn" style="width: 100%; margin-top: 20px; font-weight: bold;">🔮 Entrar no Hub</button>
+        </form>
+        
+        <div style="margin-top: 20px; text-align: center; font-size: 13px; border-top: 1px solid var(--panel); padding-top: 15px;">
+            Novo por aqui? <a href="/register" style="color: var(--accent2); text-decoration: none; font-weight: bold;">Registrar Grimório</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
