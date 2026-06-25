@@ -64,6 +64,15 @@ class CharacterModel:
         conn.commit()
         conn.close()
 
+    @staticmethod
+    def get_all_by_user(usuario_id):
+        # Combina as buscas de todos os tipos de ficha
+        tipos = ['conjurador', 'conjuracao', 'familiar', 'reliquia']
+        todas = []
+        for tipo in tipos:
+            todas.extend(CharacterModel.get_all_by_type(tipo, usuario_id))
+        return todas
+
     # ─────────────────────────────────────────────────────────
     # REGRA DE NEGÓCIO: CÁLCULO DE RECURSOS
     # ─────────────────────────────────────────────────────────

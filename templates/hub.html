@@ -21,6 +21,37 @@
     // Chama imediatamente ao carregar a página
     updateOnlineUsers();
 </script>
+
+<div class="card" style="margin-bottom: 30px; border-top: 3px solid #007bff;">
+    <h3>⚔️ Minhas Mesas</h3>
+    
+    <form action="{{ url_for('routes.criar_mesa') }}" method="POST" style="margin-bottom: 20px; display: flex; gap: 10px;">
+        <input type="text" name="nome_mesa" placeholder="Nome da nova mesa..." required style="flex-grow: 1;">
+        <button type="submit" class="btn">Criar Mesa</button>
+    </form>
+
+    <div style="margin-top: 10px;">
+        {% if mesas %}
+            {% for mesa in mesas %}
+                <div style="padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <span><strong>{{ mesa.nome }}</strong> <small>(Cod: <code>{{ mesa.codigo_convite }}</code>)</small></span>
+                    <a href="{{ url_for('routes.detalhes_mesa', mesa_id=mesa.id) }}" class="btn btn-secondary">Acessar</a>
+                </div>
+            {% endfor %}
+        {% else %}
+            <p style="color: var(--muted); font-style: italic;">Você ainda não criou ou participa de nenhuma mesa.</p>
+        {% endif %}
+    </div>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border);">
+
+    <h3>🔗 Entrar em uma Mesa</h3>
+    <form action="{{ url_for('routes.entrar_mesa') }}" method="POST" style="display: flex; gap: 10px;">
+        <input type="text" name="codigo_mesa" placeholder="Insira o código do mestre..." required style="flex-grow: 1;">
+        <button type="submit" class="btn">Entrar</button>
+</form>
+</div>
+
 <div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <div>
         <h1>✦ FICHAS RPG</h1>

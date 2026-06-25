@@ -7,6 +7,7 @@ import constants
 import random
 from datetime import datetime, timedelta
 import sqlite3
+from models.mesa import MesaModel
 
 bp = Blueprint('routes', __name__)
 pdf_generator = PDFGeneratorModel()
@@ -72,14 +73,30 @@ def logout():
 # ROTAS DO JOGO E GERENCIAMENTO DE FICHAS (PROTEGIDAS)
 # ─────────────────────────────────────────────────────────
 
+# ROTA RAIZ (O que acontece quando acessam a URL principal sem nada depois)
 @bp.route('/')
+def index():
+    if current_user.is_authenticated:
+        return redirect(url_for('routes.hub')) # Se logado, vai pro Hub
+    return redirect(url_for('routes.login'))   # Se não, vai pro Login
+
+# ROTA HUB (A única e oficial rota do Hub)
+@bp.route('/hub')
 @login_required
 def hub():
+    # Aqui você coloca o código unificado que busquei na mensagem anterior
+    conjuradores = CharacterModel.get_all_by_type('conjurador', current_user.id)
+    conjuracoes = CharacterModel.get_all_by_type('conjuracao', current_user.id)
+    familiares = CharacterModel.get_all_by_type('familiar', current_user.id)
+    reliquias = CharacterModel.get_all_by_type('reliquia', current_user.id)
+    minhas_mesas = MesaModel.get_mesas_por_usuario(current_user.id)
+    
     return render_template('hub.html', 
-                           conjuradores=CharacterModel.get_all_by_type('conjurador', current_user.id),
-                           conjuracoes=CharacterModel.get_all_by_type('conjuracao', current_user.id),
-                           familiares=CharacterModel.get_all_by_type('familiar', current_user.id),
-                           reliquias=CharacterModel.get_all_by_type('reliquia', current_user.id))
+                           conjuradores=conjuradores,
+                           conjuracoes=conjuracoes,
+                           familiares=familiares,
+                           reliquias=reliquias,
+                           mesas=minhas_mesas)
 
 @bp.route('/create/<sheet_type>')
 @login_required
@@ -246,3 +263,69 @@ def get_active_users():
     conn.close()
     
     return jsonify({"count": len(users), "users": users})
+
+@bp.route('/mesa/criar', methods=['POST'])
+@login_required
+def criar_mesa():
+    nome_mesa = request.form.get('nome_mesa')
+    codigo = MesaModel.criar_mesa(nome_mesa, current_user.id)
+    flash(f'Mesa criada! Código para convite: {codigo}', 'success')
+    return redirect(url_for('routes.hub'))
+
+
+@bp.route('/mesa/entrar', methods=['POST'])
+@login_required
+def entrar_mesa():
+    codigo = request.form.get('codigo_mesa')
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    
+    # Busca a mesa pelo código
+    cursor.execute("SELECT id FROM mesas WHERE codigo_convite = ?", (codigo,))
+    mesa = cursor.fetchone()
+    
+    if mesa:
+        mesa_id = mesa[0]
+        # Adiciona o usuário na tabela de participantes
+        cursor.execute("INSERT INTO participantes (mesa_id, usuario_id) VALUES (?, ?)", 
+                       (mesa_id, current_user.id))
+        conn.commit()
+        flash('Você entrou na mesa com sucesso!', 'success')
+    else:
+        flash('Código de mesa inválido.', 'error')
+        
+    conn.close()
+    return redirect(url_for('routes.hub'))
+
+@bp.route('/mesa/detalhes/<int:mesa_id>')
+@login_required
+def detalhes_mesa(mesa_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    
+    # 1. Verifica se o usuário logado é o mestre da mesa
+    cursor.execute("SELECT * FROM mesas WHERE id = ? AND mestre_id = ?", (mesa_id, current_user.id))
+    mesa = cursor.fetchone()
+    if not mesa:
+        abort(403) # Apenas o mestre pode ver os detalhes
+    
+    # 2. Busca todos os participantes
+    cursor.execute("""
+        SELECT u.username, p.usuario_id 
+        FROM participantes p
+        JOIN usuarios u ON p.usuario_id = u.id
+        WHERE p.mesa_id = ?
+    """, (mesa_id,))
+    jogadores = cursor.fetchall()
+    
+    # 3. Busca fichas dos jogadores (assumindo que a tabela de fichas tenha usuario_id)
+    # Aqui vamos buscar todas as fichas dos jogadores encontrados
+    fichas_dos_jogadores = []
+    for jogador in jogadores:
+        user_id = jogador[1]
+        # Pega fichas de cada tipo para esse jogador
+        fichas = CharacterModel.get_all_by_user(user_id) # Você precisará criar esse método
+        fichas_dos_jogadores.append({"username": jogador[0], "fichas": fichas})
+        
+    conn.close()
+    return render_template('mesa_detalhes.html', mesa_nome=mesa[1], jogadores=fichas_dos_jogadores)

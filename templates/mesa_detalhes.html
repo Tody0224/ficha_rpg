@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container">
+    <h2>Mesa: {{ mesa_nome }}</h2>
+    <hr>
+    {% for j in jogadores %}
+        <div class="card">
+            <h3>👤 Jogador: {{ j.username }}</h3>
+            {% if j.fichas %}
+                <ul>
+                    {% for ficha in j.fichas %}
+                        <li>{{ ficha.NOME }} (Tipo: {{ ficha.tipo }}) 
+                            <a href="{{ url_for('routes.edit_entity', sheet_type=ficha.tipo, entity_id=ficha.id) }}">Ver Ficha</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>Nenhuma ficha compartilhada ainda.</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
