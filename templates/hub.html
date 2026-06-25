@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card" style="margin-bottom: 20px; padding: 15px; border-left: 4px solid #28a745; background: rgba(40, 167, 69, 0.1);">
+<div class="card" style="margin-bottom: 20px; padding: 15px; background: rgba(40, 167, 69, 0.1);">
     <h4 style="margin: 0; color: #28a745;"> USUÁRIOS ATIVOS: <span id="user-count">0</span></h4>
     <small id="user-list" style="color: #aaa;"></small>
 </div>
@@ -16,52 +16,66 @@
             .catch(err => console.error("Erro ao buscar usuários ativos:", err));
     }
     
-    // Atualiza a cada 30 segundos automaticamente
     setInterval(updateOnlineUsers, 30000);
-    // Chama imediatamente ao carregar a página
     updateOnlineUsers();
 </script>
-
-<div class="card" style="margin-bottom: 30px; border-top: 3px solid #007bff;">
-    <h3>⚔️ Minhas Mesas</h3>
-    
-    <form action="{{ url_for('routes.criar_mesa') }}" method="POST" style="margin-bottom: 20px; display: flex; gap: 10px;">
-        <input type="text" name="nome_mesa" placeholder="Nome da nova mesa..." required style="flex-grow: 1;">
-        <button type="submit" class="btn">Criar Mesa</button>
-    </form>
-
-    <div style="margin-top: 10px;">
-        {% if mesas %}
-            {% for mesa in mesas %}
-                <div style="padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-                    <span><strong>{{ mesa.nome }}</strong> <small>(Cod: <code>{{ mesa.codigo_convite }}</code>)</small></span>
-                    <a href="{{ url_for('routes.detalhes_mesa', mesa_id=mesa.id) }}" class="btn btn-secondary">Acessar</a>
-                </div>
-            {% endfor %}
-        {% else %}
-            <p style="color: var(--muted); font-style: italic;">Você ainda não criou ou participa de nenhuma mesa.</p>
-        {% endif %}
-    </div>
-
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid var(--border);">
-
-    <h3>🔗 Entrar em uma Mesa</h3>
-    <form action="{{ url_for('routes.entrar_mesa') }}" method="POST" style="display: flex; gap: 10px;">
-        <input type="text" name="codigo_mesa" placeholder="Insira o código do mestre..." required style="flex-grow: 1;">
-        <button type="submit" class="btn">Entrar</button>
-</form>
-</div>
 
 <div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <div>
         <h1>✦ FICHAS RPG</h1>
-        <p style="color: var(--muted); margin: 5px 0 0 0;">Usuário: {{ current_user.username.upper() }}</p>
+        <p style="color: var(--muted); margin: 5px 0 0 0;">Usuário: {{ current_user.username }}</p>
     </div>
     <a href="/logout" style="color: #ff5555; text-decoration: none; font-size: 13px; font-weight: bold; background: rgba(255,85,85,0.1); padding: 8px 15px; border-radius: 6px;">🔑 Desconectar</a>
 </div>
 
+<div class="card" style="margin-bottom: 30px; border-top: 4px solid #007bff; background: rgb(31, 51, 71); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+    
+    <div style="margin-bottom: 25px;">
+        <h3 style="margin-top: 0; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+             MESAS 
+        </h3>
+        
+        <div style="margin-top: 15px;">
+            {% if mesas %}
+                {% for mesa in mesas %}
+                    <div style="padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: rgb(26, 42, 56);">
+                        <div>
+                            <strong style="display: block; color: #007bff;">{{ mesa.nome }}</strong>
+                            <small style="color: #666;">Código: <code>{{ mesa.codigo_convite }}</code></small>
+                        </div>
+                        <a href="{{ url_for('routes.detalhes_mesa', mesa_id=mesa.id) }}" class="btn btn-secondary" style="background: rgb(200, 151, 58); color: #000000; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 0.9em;">Acessar</a>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p style="color: #999; font-style: italic; font-size: 0.9em;">Você ainda não participa de nenhuma mesa.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        
+        <div>
+            <h4 style="margin-top: 0; color: #ffffff; font-size: 0.9em; text-transform: uppercase;">Criar Nova Mesa</h4>
+            <form action="{{ url_for('routes.criar_mesa') }}" method="POST" style="display: flex; gap: 5px;">
+                <input type="text" name="nome_mesa" placeholder="Nome da nova mesa..." required style="flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <button type="submit" class="btn" style="padding: 8px 15px;">Criar</button>
+            </form>
+        </div>
+
+        <div>
+            <h4 style="margin-top: 0; color: #ffffff; font-size: 0.9em; text-transform: uppercase;">Entrar EM UMA MESA</h4>
+            <form action="{{ url_for('routes.entrar_mesa') }}" method="POST" style="display: flex; gap: 5px;">
+                <input type="text" name="codigo_mesa" placeholder="Código da mesa..." required style="flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <button type="submit" class="btn" style="padding: 8px 15px; background-color: #C8973A;">Entrar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div class="card" style="margin-top: 30px; border-top: 3px solid #007bff;">
-    <h3>⚔CONJURADORES </h3>
+    <h3>CONJURADORES </h3>
     {% if conjuradores %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -98,7 +112,7 @@
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid var(--accent2);">
-    <h3>🔮CONJURAÇÕES </h3>
+    <h3>CONJURAÇÕES </h3>
     {% if conjuracoes %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -135,7 +149,7 @@
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid #28a745;">
-    <h3>🐾FAMILIARES </h3>
+    <h3>FAMILIARES </h3>
     {% if familiares %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -149,7 +163,7 @@
             <tbody>
                 {% for familiar in familiares %}
                 <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px; font-weight: bold;">🦊 {{ familiar.nome or familiar.NOME or familiar[1] }}</td>
+                    <td style="padding: 8px; font-weight: bold;"> {{ familiar.nome or familiar.NOME or familiar[1] }}</td>
                     <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ familiar.especie or familiar.ESPECIE or familiar[2] }}</span></td>
                     <td style="padding: 8px;">Nível {{ familiar.ameaca or familiar.AMEACA or familiar[3] }}</td>
                     <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
@@ -168,7 +182,7 @@
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid #ffc107;">
-    <h3>💎RELÍQUIAS</h3>
+    <h3>RELÍQUIAS</h3>
     {% if reliquias %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>

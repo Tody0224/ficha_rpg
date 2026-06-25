@@ -2,12 +2,12 @@
 {% block content %}
 <div style="max-width: 400px; margin: 80px auto; padding: 0 15px;">
     <div class="card" style="border-top: 4px solid var(--accent);">
-        <h3 style="text-align: center; margin-bottom: 20px;">🔑 LOGIN CONJURADORES</h3>
+        <h3 style="text-align: center; margin-bottom: 20px;">LOGIN CONJURADORES</h3>
         
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div style="background: rgba(255, 85, 85, 0.1); color: #ff5555; padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border-left: 3px solid #ff5555;">
+              <div style="background: rgb(38, 159, 67); color: rgb(26, 42, 56); padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; border-left: 3px solid #000000;">
                 {{ message }}
               </div>
             {% endfor %}
@@ -23,15 +23,15 @@
                 <label>Senha</label>
                 <input type="password" name="password" placeholder="Sua senha secreta..." required autocomplete="current-password">
             </div>
-            <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">🔮ENTRAR</button>
+            <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">ENTRAR</button>
+            <div style="margin-top: 20px; text-align: center; font-size: 14px; border-top: 1px solid var(--border); padding-top: 15px;">
+                        <span style="color: var(--muted);">Novo por aqui? </span>
+                        <a href="{{ url_for('routes.register') }}" style="color: var(--accent); text-decoration: none; font-weight: bold;">
+                            Registrar Usuário
+                    </div>
+                </div>
         </form>
     </div>
 </div>
-<div style="margin-top: 20px; text-align: center; font-size: 14px; border-top: 1px solid var(--border); padding-top: 15px;">
-            <span style="color: var(--muted);">Novo por aqui? </span>
-            <a href="{{ url_for('routes.register') }}" style="color: var(--accent); text-decoration: none; font-weight: bold;">
-                Registrar Usuário
-        </div>
-    </div>
 </div>
 {% endblock %}
