@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="card" style="margin-bottom: 20px; padding: 15px; border-left: 4px solid #28a745; background: rgba(40, 167, 69, 0.1);">
-    <h4 style="margin: 0; color: #28a745;">🔮 Mágicos Ativos: <span id="user-count">0</span></h4>
+    <h4 style="margin: 0; color: #28a745;"> USUÁRIOS ATIVOS: <span id="user-count">0</span></h4>
     <small id="user-list" style="color: #aaa;"></small>
 </div>
 
@@ -24,13 +24,13 @@
 <div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
     <div>
         <h1>✦ FICHAS RPG</h1>
-        <p style="color: var(--muted); margin: 5px 0 0 0;">Grimório de {{ current_user.username.upper() }}</p>
+        <p style="color: var(--muted); margin: 5px 0 0 0;">Usuário: {{ current_user.username.upper() }}</p>
     </div>
     <a href="/logout" style="color: #ff5555; text-decoration: none; font-size: 13px; font-weight: bold; background: rgba(255,85,85,0.1); padding: 8px 15px; border-radius: 6px;">🔑 Desconectar</a>
 </div>
 
 <div class="card" style="margin-top: 30px; border-top: 3px solid #007bff;">
-    <h3>⚔ CONJURADORES SALVOS</h3>
+    <h3>⚔CONJURADORES </h3>
     {% if conjuradores %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -67,7 +67,7 @@
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid var(--accent2);">
-    <h3>🔮 CONJURAÇÕES SALVAS</h3>
+    <h3>🔮CONJURAÇÕES </h3>
     {% if conjuracoes %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -104,7 +104,7 @@
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid #28a745;">
-    <h3>🐾 FAMILIARES SALVOS</h3>
+    <h3>🐾FAMILIARES </h3>
     {% if familiares %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -137,7 +137,7 @@
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid #ffc107;">
-    <h3>💎 RELÍQUIAS SALVAS</h3>
+    <h3>💎RELÍQUIAS</h3>
     {% if reliquias %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
             <thead>
@@ -171,22 +171,22 @@
 
 <div class="grid-3" style="grid-template-columns: repeat(2, 1fr); margin-top: 30px;">
     <div class="card">
-        <h3>⚔ CONJURADOR</h3>
+        <h3>CRIAR CONJURADOR</h3>
         <p style="color: var(--muted); font-size: 13px;">Personagem jogável com escola, atributos e perícias</p>
         <a href="/create/conjurador" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
     </div>
     <div class="card">
-        <h3>✦ CONJURAÇÃO</h3>
+        <h3>CRIAR CONJURAÇÃO</h3>
         <p style="color: var(--muted); font-size: 13px;">Habilidade sobrenatural vinculada a uma matriz</p>
         <a href="/create/conjuracao" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
     </div>
     <div class="card">
-        <h3>🐾 FAMILIAR</h3>
+        <h3>CRIAR FAMILIAR</h3>
         <p style="color: var(--muted); font-size: 13px;">Criatura sobrenatural vinculada à relíquia</p>
         <a href="/create/familiar" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
     </div>
     <div class="card">
-        <h3>💎 RELÍQUIA</h3>
+        <h3>CRIAR RELÍQUIA</h3>
         <p style="color: var(--muted); font-size: 13px;">Artefato mágico com núcleo e familiar vinculado</p>
         <a href="/create/reliquia" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
     </div>
