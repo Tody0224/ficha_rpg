@@ -5,6 +5,40 @@
     <p style="color: var(--muted); margin: 5px 0 0 0;">Sistema de criação de personagens e artefatos</p>
 </div>
 
+<div class="card" style="margin-top: 30px; border-top: 3px solid var(--accent2);">
+    <h3>📂 FICHAS SALVAS NO BANCO DE DADOS</h3>
+    {% if conjuracoes %}
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
+                    <th style="padding: 8px; color: var(--accent);">Nome</th>
+                    <th style="padding: 8px; color: var(--accent);">Matriz</th>
+                    <th style="padding: 8px; color: var(--accent);">Custo</th>
+                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conj in conjuracoes %}
+                <tr style="border-bottom: 1px solid var(--border);">
+                    <td style="padding: 8px; font-weight: bold;">🔮 {{ conj.nome }}</td>
+                    <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ conj.matriz }}</span></td>
+                    <td style="padding: 8px;">{{ conj.custo }} Conexão</td>
+                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
+                        <a href="/edit/conjuracao/{{ conj.id }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
+                        
+                        <form action="/delete/conjuracao/{{ conj.id }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar esta conjuração?');">
+                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white;">Apagar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhuma ficha cadastrada localmente ainda.</p>
+    {% endif %}
+</div>
+
 <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
     <div class="card">
         <h3>⚔ CONJURADOR</h3>

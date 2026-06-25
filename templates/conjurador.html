@@ -9,7 +9,10 @@
     <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
 </div>
 
-<form id="sheetForm" action="/generate_pdf/{{ sheet_type }}" method="POST">
+<form id="sheetForm" action="{% if entity %}/save_and_process/{{ sheet_type }}/{{ entity.id }}{% else %}/save_and_process/{{ sheet_type }}{% endif %}" method="POST">
+    
+    <input type="hidden" name="action_type" id="action_type" value="pdf">
+
     <div class="card">
         <h3>IDENTIFICAÇÃO</h3>
         <div class="form-group">
@@ -72,7 +75,9 @@
         <div class="form-group"><label>Nome da Relíquia Vinculada</label><input type="text" name="RELIQUIA" id="RELIQUIA"></div>
     </div>
 
+    
     <button type="submit" class="btn">📄 Gerar PDF</button>
+    <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
 </form>
 
 <script>

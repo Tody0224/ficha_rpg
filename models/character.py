@@ -1,8 +1,110 @@
 # models/character.py
 import random
+import sqlite3
+import json
 from constants import ESCOLAS, PERICIAS_POR_ESCOLA, PERICIAS_DISP, MATRIZES, SUB_MATRIZES, ACOES, ALCANCES, AREAS, PORTES, COBERTURAS, TEMPERAMENTOS, HABITOS, SOCIALIZACOES, NIVEIS_REL, NUCLEOS_REL
 
+DB_PATH = "database.db"
+
 class CharacterModel:
+
+    @staticmethod
+    def init_db():
+        """Cria as tabelas necessárias no banco de dados se não existirem."""
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        # Tabela para armazenar Conjurações
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS conjuracoes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL,
+                matriz TEXT NOT NULL,
+                sub_matriz TEXT,
+                custo INTEGER NOT NULL,
+                ganho_conexao INTEGER NOT NULL,
+                gasto_action TEXT NOT NULL,
+                alcance TEXT NOT NULL,
+                area TEXT NOT NULL,
+                dano TEXT NOT NULL,
+                efeitos TEXT,
+                descricao TEXT
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def save_conjuracao(data, conjuracao_id=None):
+        """Salva uma nova conjuração ou atualiza uma existente (se conjuracao_id for fornecido)."""
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        
+        if conjuracao_id:
+            # UPDATE (Edição)
+            cursor.execute("""
+                UPDATE conjuracoes SET 
+                    nome=?, matriz=?, sub_matriz=?, custo=?, ganho_conexao=?, 
+                    gasto_action=?, alcance=?, area=?, dano=?, efeitos=?, descricao=?
+                WHERE id=?
+            """, (
+                data.get('NOME'), data.get('MATRIZ'), data.get('SUB_MATRIZ'),
+                int(data.get('CUSTO', 0)), int(data.get('GANHO_CONEXAO', 0)),
+                data.get('GASTO_ACAO'), data.get('ALCANCE'), data.get('AREA'),
+                data.get('DANO', '0'), data.get('EFEITOS'), data.get('DESCRICAO'),
+                conjuracao_id
+            ))
+            new_id = conjuracao_id
+        else:
+            # INSERT (Nova)
+            cursor.execute("""
+                INSERT INTO conjuracoes (
+                    nome, matriz, sub_matriz, custo, ganho_conexao, 
+                    gasto_action, alcance, area, dano, efeitos, descricao
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                data.get('NOME'), data.get('MATRIZ'), data.get('SUB_MATRIZ'),
+                int(data.get('CUSTO', 0)), int(data.get('GANHO_CONEXAO', 0)),
+                data.get('GASTO_ACAO'), data.get('ALCANCE'), data.get('AREA'),
+                data.get('DANO', '0'), data.get('EFEITOS'), data.get('DESCRICAO')
+            ))
+            new_id = cursor.lastrowid
+            
+        conn.commit()
+        conn.close()
+        return new_id
+
+    @staticmethod
+    def delete_conjuracao(conjuracao_id):
+        """Remove uma conjuração do banco de dados pelo ID."""
+        conn = sqlite3.connect(DB_PATH)
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM conjuracoes WHERE id = ?", (conjuracao_id,))
+        conn.commit()
+        conn.close()
+
+    @staticmethod
+    def get_all_conjuracoes():
+        """Retorna a lista de todas as conjurações salvas."""
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row  # Permite acessar colunas pelo nome (ex: row['nome'])
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, nome, matriz, custo FROM conjuracoes ORDER BY id DESC")
+        rows = cursor.fetchall()
+        conn.close()
+        return rows
+
+    @staticmethod
+    def get_conjuracao_by_id(conjuracao_id):
+        """Busca uma conjuração específica para edição."""
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM conjuracoes WHERE id = ?", (conjuracao_id,))
+        row = cursor.fetchone()
+        conn.close()
+        return row
+    
     @staticmethod
     def calculate_resources(grau, vitalidade, sintonia):
         niveis = max(int(grau) - 1, 0)
