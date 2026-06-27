@@ -80,15 +80,15 @@ def index():
         return redirect(url_for('routes.hub')) # Se logado, vai pro Hub
     return redirect(url_for('routes.login'))   # Se não, vai pro Login
 
-# ROTA HUB (A única e oficial rota do Hub)
 @bp.route('/hub')
 @login_required
 def hub():
-    # Aqui você coloca o código unificado que busquei na mensagem anterior
     conjuradores = CharacterModel.get_all_by_type('conjurador', current_user.id)
     conjuracoes = CharacterModel.get_all_by_type('conjuracao', current_user.id)
     familiares = CharacterModel.get_all_by_type('familiar', current_user.id)
     reliquias = CharacterModel.get_all_by_type('reliquia', current_user.id)
+    
+    # O seu MesaModel agora faz o trabalho pesado por baixo dos panos!
     minhas_mesas = MesaModel.get_mesas_por_usuario(current_user.id)
     
     return render_template('hub.html', 
@@ -286,16 +286,27 @@ def entrar_mesa():
     
     if mesa:
         mesa_id = mesa[0]
-        # Adiciona o usuário na tabela de participantes
-        cursor.execute("INSERT INTO participantes (mesa_id, usuario_id) VALUES (?, ?)", 
-                       (mesa_id, current_user.id))
-        conn.commit()
-        flash('Você entrou na mesa com sucesso!', 'success')
-    else:
-        flash('Código de mesa inválido.', 'error')
         
-    conn.close()
-    return redirect(url_for('routes.hub'))
+        # 1. Verifica se o usuário já é participante desta mesa
+        cursor.execute("SELECT 1 FROM participantes WHERE mesa_id = ? AND usuario_id = ?", 
+                       (mesa_id, current_user.id))
+        ja_participa = cursor.fetchone()
+        
+        # 2. Se não existir, insere. Se já existir, não faz nada (apenas deixa entrar)
+        if not ja_participa:
+            cursor.execute("INSERT INTO participantes (mesa_id, usuario_id) VALUES (?, ?)", 
+                           (mesa_id, current_user.id))
+            conn.commit()
+            flash('Você entrou na mesa com sucesso!', 'success')
+        else:
+            flash('Você já participa desta mesa.', 'info')
+            
+        conn.close()
+        return redirect(url_for('routes.detalhes_mesa', mesa_id=mesa_id))
+    else:
+        conn.close()
+        flash('Código de mesa inválido.', 'error')
+        return redirect(url_for('routes.hub'))
 
 @bp.route('/mesa/detalhes/<int:mesa_id>')
 @login_required
@@ -303,29 +314,94 @@ def detalhes_mesa(mesa_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
     
-    # 1. Verifica se o usuário logado é o mestre da mesa
-    cursor.execute("SELECT * FROM mesas WHERE id = ? AND mestre_id = ?", (mesa_id, current_user.id))
+    # 1. Busca os dados básicos da mesa
+    cursor.execute("SELECT id, nome, mestre_id, codigo_convite FROM mesas WHERE id = ?", (mesa_id,))
     mesa = cursor.fetchone()
+    
     if not mesa:
-        abort(403) # Apenas o mestre pode ver os detalhes
+        conn.close()
+        abort(404)
     
-    # 2. Busca todos os participantes
+    mestre_id = mesa[2]
+    e_o_mestre = (mestre_id == current_user.id)
+    codigo_convite = mesa[3]
+    
+    # 2. CORREÇÃO DO SQL: Busca os participantes normais OU o mestre da mesa
     cursor.execute("""
-        SELECT u.username, p.usuario_id 
-        FROM participantes p
-        JOIN usuarios u ON p.usuario_id = u.id
-        WHERE p.mesa_id = ?
-    """, (mesa_id,))
-    jogadores = cursor.fetchall()
+        SELECT DISTINCT u.username, u.id 
+        FROM usuarios u
+        LEFT JOIN participantes p ON p.usuario_id = u.id
+        WHERE p.mesa_id = ? OR u.id = ?
+    """, (mesa_id, mestre_id))
+    jogadores_banco = cursor.fetchall()
     
-    # 3. Busca fichas dos jogadores (assumindo que a tabela de fichas tenha usuario_id)
-    # Aqui vamos buscar todas as fichas dos jogadores encontrados
+    # 3. Busca as fichas de cada membro encontrado
     fichas_dos_jogadores = []
-    for jogador in jogadores:
-        user_id = jogador[1]
-        # Pega fichas de cada tipo para esse jogador
-        fichas = CharacterModel.get_all_by_user(user_id) # Você precisará criar esse método
-        fichas_dos_jogadores.append({"username": jogador[0], "fichas": fichas})
+    for jogador in jogadores_banco:
+        username_jogador = jogador[0]
+        user_id_jogador = jogador[1]
         
+        # Identifica se este usuário específico é o criador/mestre da mesa
+        jogador_e_mestre = (mestre_id == user_id_jogador)
+        
+        dados_jogador = {
+            'username': username_jogador,
+            'is_master': jogador_e_mestre,
+            'fichas': []
+        }
+        
+        # Busca as fichas (Conjuradores, Conjurações, Familiares, Relíquias)
+        cursor.execute("SELECT id, nome FROM conjuradores WHERE usuario_id = ?", (user_id_jogador,))
+        for c in cursor.fetchall():
+            dados_jogador['fichas'].append({'id': c[0], 'NOME': c[1], 'tipo': 'conjurador'})
+            
+        cursor.execute("SELECT id, nome FROM conjuracoes WHERE usuario_id = ?", (user_id_jogador,))
+        for c in cursor.fetchall():
+            dados_jogador['fichas'].append({'id': c[0], 'NOME': c[1], 'tipo': 'conjuracao'})
+            
+        cursor.execute("SELECT id, nome FROM familiares WHERE usuario_id = ?", (user_id_jogador,))
+        for f in cursor.fetchall():
+            dados_jogador['fichas'].append({'id': f[0], 'NOME': f[1], 'tipo': 'familiar'})
+            
+        cursor.execute("SELECT id, nome FROM reliquias WHERE usuario_id = ?", (user_id_jogador,))
+        for r in cursor.fetchall():
+            dados_jogador['fichas'].append({'id': r[0], 'NOME': r[1], 'tipo': 'reliquia'})
+            
+        fichas_dos_jogadores.append(dados_jogador)
+    
     conn.close()
-    return render_template('mesa_detalhes.html', mesa_nome=mesa[1], jogadores=fichas_dos_jogadores)
+    
+    return render_template(
+        'mesa_detalhes.html', 
+        mesa_nome=mesa[1], 
+        mesa_id=mesa_id, 
+        codigo_convite=codigo_convite,
+        jogadores=fichas_dos_jogadores,
+        e_mestre=e_o_mestre
+    )
+
+@bp.route('/mesa/delete/<int:mesa_id>', methods=['POST'])
+@login_required
+def delete_mesa(mesa_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM mesas WHERE id = ? AND mestre_id = ?", (mesa_id, current_user.id))
+    conn.commit()
+    conn.close()
+    flash('Mesa excluída!', 'success')
+    return redirect(url_for('routes.hub'))
+
+@bp.route('/mesa/sair/<int:mesa_id>', methods=['POST'])
+@login_required
+def sair_da_mesa(mesa_id):
+    conn = sqlite3.connect('database.db')
+    cursor = conn.cursor()
+    
+    # Remove o usuário da tabela participantes
+    cursor.execute("DELETE FROM participantes WHERE mesa_id = ? AND usuario_id = ?", 
+                   (mesa_id, current_user.id))
+    conn.commit()
+    conn.close()
+    
+    flash('Você saiu da mesa com sucesso.', 'info')
+    return redirect(url_for('routes.hub'))

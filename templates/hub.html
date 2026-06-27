@@ -28,50 +28,80 @@
     <a href="/logout" style="color: #ff5555; text-decoration: none; font-size: 13px; font-weight: bold; background: rgba(255,85,85,0.1); padding: 8px 15px; border-radius: 6px;">🔑 Desconectar</a>
 </div>
 
-<div class="card" style="margin-bottom: 30px; border-top: 4px solid #007bff; background: rgb(31, 51, 71); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+<div class="card" style="margin-bottom: 30px; border-top: 4px solid #007bff; background: #0f172a; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">
     
-    <div style="margin-bottom: 25px;">
-        <h3 style="margin-top: 0; color: #ffffff; display: flex; align-items: center; gap: 8px;">
-             MESAS 
-        </h3>
-        
-        <div style="margin-top: 15px;">
-            {% if mesas %}
-                {% for mesa in mesas %}
-                    <div style="padding: 12px; margin-bottom: 8px; border: 1px solid #e0e0e0; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; background: rgb(26, 42, 56);">
-                        <div>
-                            <strong style="display: block; color: #007bff;">{{ mesa.nome }}</strong>
-                            <small style="color: #666;">Código: <code>{{ mesa.codigo_convite }}</code></small>
-                        </div>
-                        <a href="{{ url_for('routes.detalhes_mesa', mesa_id=mesa.id) }}" class="btn btn-secondary" style="background: rgb(200, 151, 58); color: #000000; padding: 6px 12px; text-decoration: none; border-radius: 4px; font-size: 0.9em;">Acessar</a>
+    <h2 style="margin-top: 0; color: #f8fafc; font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">
+        ⚔️ Mesas
+    </h2>
+    <p style="color: #94a3b8; margin-bottom: 25px;">Gerencie suas mesas ativas ou ingresse em uma nova aventura.</p>
+
+    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px;">
+        {% if mesas %}
+            {% for mesa in mesas %}
+                <div style="padding: 16px; background: #1e293b; border-radius: 8px; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <strong style="color: #ffffff; font-size: 1.1rem; display: block;">{{ mesa.nome }}</strong>
+                        <small style="color: #64748b;">Código: <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">{{ mesa.codigo_convite }}</code></small>
                     </div>
-                {% endfor %}
-            {% else %}
-                <p style="color: #999; font-style: italic; font-size: 0.9em;">Você ainda não participa de nenhuma mesa.</p>
-            {% endif %}
-        </div>
+                    <div style="display: flex; gap: 8px;">
+    <!-- Botão Acessar (Para todos) -->
+    <a href="{{ url_for('routes.detalhes_mesa', mesa_id=mesa.id) }}" 
+       style="background: #3b82f6; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem;">
+       Acessar
+    </a>
+
+    {% if mesa.mestre_id == current_user.id %}
+        <!-- BOTÃO EXCLUIR: Só aparece se o usuário logado for o Mestre -->
+        <form action="{{ url_for('routes.delete_mesa', mesa_id=mesa.id) }}" method="POST" 
+              onsubmit="return confirm('Tem certeza que deseja APAGAR a mesa {{ mesa.nome }}? Esta ação é irreversível.');">
+            <button type="submit" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                Excluir
+            </button>
+        </form>
+    {% else %}
+        <!-- BOTÃO ABANDONAR: Aparece se o usuário for apenas participante -->
+        <form action="{{ url_for('routes.sair_da_mesa', mesa_id=mesa.id) }}" method="POST" 
+              onsubmit="return confirm('Tem certeza que deseja abandonar a mesa {{ mesa.nome }}?');">
+            <button type="submit" style="background: #b91c1c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                Abandonar
+            </button>
+        </form>
+    {% endif %}
+</div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div style="text-align: center; padding: 20px; border: 2px dashed #334155; border-radius: 8px;">
+                <p style="color: #64748b; margin: 0;">Você ainda não participa de nenhuma mesa.</p>
+            </div>
+        {% endif %}
     </div>
 
-    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+    <div style="height: 1px; background: #334155; margin-bottom: 25px;"></div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
         
-        <div>
-            <h4 style="margin-top: 0; color: #ffffff; font-size: 0.9em; text-transform: uppercase;">Criar Nova Mesa</h4>
-            <form action="{{ url_for('routes.criar_mesa') }}" method="POST" style="display: flex; gap: 5px;">
-                <input type="text" name="nome_mesa" placeholder="Nome da nova mesa..." required style="flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                <button type="submit" class="btn" style="padding: 8px 15px;">Criar</button>
-            </form>
-        </div>
+        <form action="{{ url_for('routes.criar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
+            <label style="display: block; color: #94a3b8; margin-bottom: 8px; font-size: 0.85rem;">CRIAR NOVA MESA</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" name="nome_mesa" placeholder="Nome da mesa..." required 
+                       style="flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white;">
+                <button type="submit" style="background: #10b981; color: white; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Criar</button>
+            </div>
+        </form>
 
-        <div>
-            <h4 style="margin-top: 0; color: #ffffff; font-size: 0.9em; text-transform: uppercase;">Entrar EM UMA MESA</h4>
-            <form action="{{ url_for('routes.entrar_mesa') }}" method="POST" style="display: flex; gap: 5px;">
-                <input type="text" name="codigo_mesa" placeholder="Código da mesa..." required style="flex-grow: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-                <button type="submit" class="btn" style="padding: 8px 15px; background-color: #C8973A;">Entrar</button>
-            </form>
-        </div>
+        <form action="{{ url_for('routes.entrar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
+            <label style="display: block; color: #94a3b8; margin-bottom: 8px; font-size: 0.85rem;">ENTRAR POR CÓDIGO</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" name="codigo_mesa" placeholder="Código do mestre..." required 
+                       style="flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white;">
+                <button type="submit" style="background: #f59e0b; color: #000; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Entrar</button>
+            </div>
+        </form>
     </div>
+</div>
+
+    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
 </div>
 
 <div class="card" style="margin-top: 30px; border-top: 3px solid #007bff;">

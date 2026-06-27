@@ -49,3 +49,31 @@ class MesaModel:
         mesas = cursor.fetchall()
         conn.close()
         return [dict(mesa) for mesa in mesas]
+    
+    @staticmethod
+    def get_mesas_por_usuario(usuario_id):
+        import sqlite3 # Certifique-se de ter o import se necessário
+        conn = sqlite3.connect('database.db')
+        cursor = conn.cursor()
+        
+        # Busca tanto as mesas que ele criou (mestre_id) quanto as que ele participa
+        cursor.execute("""
+            SELECT DISTINCT m.id, m.nome, m.codigo_convite, m.mestre_id
+            FROM mesas m
+            LEFT JOIN participantes p ON p.mesa_id = m.id
+            WHERE m.mestre_id = ? OR p.usuario_id = ?
+        """, (usuario_id, usuario_id))
+        
+        mesas_banco = cursor.fetchall()
+        conn.close()
+        
+        # Monta a lista de dicionários ou objetos que o seu hub.html já espera
+        mesas = []
+        for row in mesas_banco:
+            mesas.append({
+                'id': row[0],
+                'nome': row[1],
+                'codigo_convite': row[2],
+                'mestre_id': row[3]
+            })
+        return mesas

@@ -1,23 +1,120 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="container">
-    <h2>Mesa: {{ mesa_nome }}</h2>
-    <hr>
+<div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+    
+    <div class="card" style="background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-top: 4px solid #3b82f6;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h2 style="margin: 0; color: #fff;">Mesa: {{ mesa_nome }}</h2>
+                </div>
+                <div style="margin-top: 8px; display: flex; gap: 15px; align-items: center;">
+                    <small style="color: #64748b; font-weight: bold; background: #0f172a; padding: 3px 8px; border-radius: 4px;">ID da Mesa: #{{ mesa_id }}</small>
+                    
+                    <small style="color: #94a3b8;">
+                        Código: 
+                        <code id="codigoMesa" style="background: #0f172a; padding: 3px 6px; border-radius: 4px; color: #38bdf8; font-weight: bold;">{{ codigo_convite }}</code>
+                        <button onclick="copiarCodigo()" id="btnCopiar" style="background: #334155; color: #cbd5e1; border: none; padding: 3px 8px; margin-left: 5px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; transition: 0.2s;">
+                            📋 Copiar
+                        </button>
+                    </small>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('routes.hub') }}" style="background: #64748b; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block;">
+                    Voltar para o Menu
+                </a>
+
+                {% if e_mestre %}
+                    <form action="{{ url_for('routes.delete_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Apagar a mesa {{ mesa_nome }} definitivamente? Esta ação é irreversível.');">
+                        <button type="submit" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Excluir Mesa</button>
+                    </form>
+                {% else %}
+                    <form action="{{ url_for('routes.sair_da_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja deixar esta mesa? Suas fichas não aparecerão mais aqui.');">
+                        <button type="submit" style="background: #b91c1c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Abandonar Mesa</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <h3 style="color: #94a3b8; margin-bottom: 15px;">Membros da Mesa</h3>
+    
     {% for j in jogadores %}
-        <div class="card">
-            <h3>👤 Jogador: {{ j.username }}</h3>
+        <div class="card jogador-card" data-username="{{ j.username }}" style="background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid {% if j.is_master %}#f59e0b{% else %}#334155{% endif %};">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <h3 style="margin: 0; color: #ffffff;">👤 {{ j.username }}</h3>
+                    {% if j.is_master %}
+                        <span style="background: #f59e0b; color: #000; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px;">👑 Mestre</span>
+                    {% endif %}
+                </div>
+                
+                <span class="status-badge" style="font-size: 0.8rem; font-weight: bold; color: #64748b;">
+                    ⚫ Offline
+                </span>
+            </div>
+            
             {% if j.fichas %}
-                <ul>
+                <ul style="list-style: none; padding: 0; margin: 0;">
                     {% for ficha in j.fichas %}
-                        <li>{{ ficha.NOME }} (Tipo: {{ ficha.tipo }}) 
-                            <a href="{{ url_for('routes.edit_entity', sheet_type=ficha.tipo, entity_id=ficha.id) }}">Ver Ficha</a>
+                        <li style="background: #1e293b; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
+                            <span>✨ <strong>{{ ficha.NOME }}</strong> <small style="color: #64748b;">({{ ficha.tipo }})</small></span>
+                            <a href="{{ url_for('routes.edit_entity', sheet_type=ficha.tipo, entity_id=ficha.id) }}" 
+                               style="color: #3b82f6; text-decoration: none; font-size: 0.85rem; font-weight: bold;">Ver Ficha →</a>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p>Nenhuma ficha compartilhada ainda.</p>
+                <p style="color: #64748b; font-style: italic; font-size: 0.9rem; margin: 0;">Nenhuma ficha compartilhada ainda.</p>
             {% endif %}
+        </div>
+    {% else %}
+        <div style="text-align: center; padding: 30px; border: 2px dashed #334155; border-radius: 8px;">
+            <p style="color: #64748b; margin: 0; font-style: italic;">Nenhum jogador cadastrado nesta mesa.</p>
         </div>
     {% endfor %}
 </div>
+
+<script>
+function copiarCodigo() {
+    var codigoText = document.getElementById("codigoMesa").innerText;
+    navigator.clipboard.writeText(codigoText).then(function() {
+        var btn = document.getElementById("btnCopiar");
+        btn.innerText = "✓ Copiado!";
+        btn.style.background = "#10b981";
+        btn.style.color = "#fff";
+        setTimeout(function() {
+            btn.innerText = "📋 Copiar";
+            btn.style.background = "#334155";
+            btn.style.color = "#cbd5e1";
+        }, 2000);
+    });
+}
+
+function checkOnlinePlayers() {
+    fetch('/api/active_users')
+        .then(res => res.json())
+        .then(data => {
+            const usuariosOnline = data.users || [];
+            document.querySelectorAll('.jogador-card').forEach(card => {
+                const username = card.getAttribute('data-username');
+                const badge = card.querySelector('.status-badge');
+                
+                if (usuariosOnline.includes(username)) {
+                    badge.innerText = "🟢 Online";
+                    badge.style.color = "#10b981";
+                } else {
+                    badge.innerText = "⚫ Offline";
+                    badge.style.color = "#64748b";
+                }
+            });
+        })
+        .catch(err => console.error("Erro ao sincronizar status dos jogadores:", err));
+}
+
+checkOnlinePlayers();
+setInterval(checkOnlinePlayers, 10000);
+</script>
 {% endblock %}
