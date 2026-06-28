@@ -41,8 +41,14 @@
                 <div style="padding: 16px; background: #1e293b; border-radius: 8px; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <strong style="color: #ffffff; font-size: 1.1rem; display: block;">{{ mesa.nome }}</strong>
-                        <small style="color: #64748b;">Código: <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8;">{{ mesa.codigo_convite }}</code></small>
-                    </div>
+<small style="color: #64748b;">
+    Código: 
+    <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8; cursor: pointer; display: inline-block;" 
+          onclick="copiarTexto(this, '{{ mesa.codigo_convite }}')">
+        <span class="codigo-valor">{{ mesa.codigo_convite }}</span>
+        <span class="icone-copia">📋</span>
+    </code>
+</small>                    </div>
                     <div style="display: flex; gap: 8px;">
     <!-- Botão Acessar (Para todos) -->
     <a href="{{ url_for('routes.detalhes_mesa', mesa_id=mesa.id) }}" 
@@ -107,8 +113,7 @@
 <div class="card" style="margin-top: 30px; border-top: 3px solid #007bff;">
     <h3>CONJURADORES </h3>
     {% if conjuradores %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <thead>
+            <table border-collapse: collapse; margin-top: 10px; table-layout: fixed;">            <thead>
                 <tr style="border-bottom: 1px solid var(--border); text-align: left;">
                     <th style="padding: 8px; color: var(--accent);">Nome</th>
                     <th style="padding: 8px; color: var(--accent);">Escola</th>
@@ -144,7 +149,7 @@
 <div class="card" style="margin-top: 20px; border-top: 3px solid var(--accent2);">
     <h3>CONJURAÇÕES </h3>
     {% if conjuracoes %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <table border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
             <thead>
                 <tr style="border-bottom: 1px solid var(--border); text-align: left;">
                     <th style="padding: 8px; color: var(--accent);">Nome</th>
@@ -181,7 +186,7 @@
 <div class="card" style="margin-top: 20px; border-top: 3px solid #28a745;">
     <h3>FAMILIARES </h3>
     {% if familiares %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <table border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
             <thead>
                 <tr style="border-bottom: 1px solid var(--border); text-align: left;">
                     <th style="padding: 8px; color: var(--accent);">Nome</th>
@@ -214,7 +219,7 @@
 <div class="card" style="margin-top: 20px; border-top: 3px solid #ffc107;">
     <h3>RELÍQUIAS</h3>
     {% if reliquias %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+        <table border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
             <thead>
                 <tr style="border-bottom: 1px solid var(--border); text-align: left;">
                     <th style="padding: 8px; color: var(--accent);">Nome</th>
@@ -245,7 +250,7 @@
 </div>
 
 <div class="grid-3" style="grid-template-columns: repeat(2, 1fr); margin-top: 30px;">
-    <div class="card">
+    <div class="card";>
         <h3>CRIAR CONJURADOR</h3>
         <p style="color: var(--muted); font-size: 13px;">Personagem jogável com escola, atributos e perícias</p>
         <a href="/create/conjurador" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
@@ -266,4 +271,24 @@
         <a href="/create/reliquia" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
     </div>
 </div>
+<script>
+function copiarTexto(elemento, codigo) {
+    navigator.clipboard.writeText(codigo).then(() => {
+        const icone = elemento.querySelector('.icone-copia');
+        const originalIcone = icone.innerText;
+        
+        // Altera apenas o ícone/texto de feedback
+        icone.innerText = "✓";
+        elemento.style.background = "#064e3b"; // Verde escuro para indicar sucesso
+        elemento.style.color = "#fff";
+        
+        // Volta ao original após 2 segundos
+        setTimeout(() => {
+            icone.innerText = originalIcone;
+            elemento.style.background = "#0f172a";
+            elemento.style.color = "#38bdf8";
+        }, 2000);
+    });
+}
+</script>
 {% endblock %}
