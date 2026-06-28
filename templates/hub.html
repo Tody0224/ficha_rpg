@@ -1,150 +1,98 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card" style="margin-bottom: 20px; padding: 15px; background: rgba(40, 167, 69, 0.1);">
-    <h4 style="margin: 0; color: #28a745;"> USUÁRIOS ATIVOS: <span id="user-count">0</span></h4>
-    <small id="user-list" style="color: #aaa;"></small>
-</div>
 
-<script>
-    function updateOnlineUsers() {
-        fetch('/api/active_users')
-            .then(res => res.json())
-            .then(data => {
-                document.getElementById('user-count').innerText = data.count;
-                document.getElementById('user-list').innerText = data.users.length > 0 ? "Online: " + data.users.join(', ') : "Nenhum outro mago ativo.";
-            })
-            .catch(err => console.error("Erro ao buscar usuários ativos:", err));
-    }
-    
-    setInterval(updateOnlineUsers, 30000);
-    updateOnlineUsers();
-</script>
-
-<div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
-    <div>
-        <h1>✦ FICHAS RPG</h1>
-        {% if current_user.is_authenticated %}
-            <p style="color: var(--muted); margin: 5px 0 0 0;">Usuário: {{ current_user.username }}</p>
-        {% else %}
-            <p style="color: var(--muted); margin: 5px 0 0 0;">Modo Visitante (Crie fichas livremente)</p>
-        {% endif %}
-    </div>
-    
-    <div>
-        {% if current_user.is_authenticated %}
-            <a href="{{ url_for('auth.logout') }}" class="btn" style="background-color: #dc3545; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px;">Sair</a>
-        {% else %}
-            <div style="display: flex; gap: 10px;">
-                <a href="{{ url_for('auth.login') }}" class="btn" style="background-color: #007bff; color: white; text-decoration: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Entrar</a>
-                
-                <a href="{{ url_for('auth.register') }}" class="btn" style="background-color: #1e293b; color: #cbd5e1; border: 1px solid var(--border); text-decoration: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Registar</a>
-            </div>
-        {% endif %}
+<div class="hub-header">
+    <div class="user-info">
+        <h1>Menu Inicial</h1>
     </div>
 </div>
 
-<div class="card" style="margin-bottom: 30px; border-top: 4px solid #007bff; background: #0f172a; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">
-    <h2 style="margin-top: 0; color: #f8fafc; font-size: 1.5rem; display: flex; align-items: center; gap: 10px;">
-        ⚔️ Mesas
-    </h2>
-    <p style="color: #94a3b8; margin-bottom: 25px;">Gerencie suas mesas ativas ou ingresse em uma nova aventura.</p>
+<div class="card mesa-card-container">
+    <h2>MESAS</h2>
+    <p class="section-description">Gerencie suas salas ativas ou ingresse em uma nova matriz de jogo.</p>
 
-    <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px;">
+    <div class="mesas-list">
         {% if mesas %}
             {% for mesa in mesas %}
-                <div style="padding: 16px; background: #1e293b; border-radius: 8px; border-left: 4px solid #3b82f6; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <strong style="color: #ffffff; font-size: 1.1rem; display: block;">{{ mesa.nome }}</strong>
-                        <small style="color: #64748b;">
+                <div class="mesa-item">
+                    <div class="mesa-details">
+                        <strong class="mesa-title">{{ mesa.nome }}</strong>
+                        <small class="mesa-code">
                             Código: 
-                            <code style="background: #0f172a; padding: 2px 6px; border-radius: 4px; color: #38bdf8; cursor: pointer; display: inline-block;" 
-                                  onclick="copiarTexto(this, '{{ mesa.codigo_convite }}')">
+                            <code class="clickable-code" onclick="copiarTexto(this, '{{ mesa.codigo_convite }}')">
                                 <span class="codigo-valor">{{ mesa.codigo_convite }}</span>
                                 <span class="icone-copia">📋</span>
                             </code>
                         </small>
                     </div>
-                    <div style="display: flex; gap: 8px;">
-                        <a href="{{ url_for('table.detalhes_mesa', mesa_id=mesa.id) }}" 
-                           style="background: #3b82f6; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem;">
-                           Acessar
-                        </a>
+                    <div class="mesa-actions">
+                        <a href="{{ url_for('table.detalhes_mesa', mesa_id=mesa.id) }}" class="btn btn-sm">Acessar</a>
 
                         {% if mesa.mestre_id == current_user.id %}
-                            <form action="{{ url_for('table.delete_mesa', mesa_id=mesa.id) }}" method="POST" style="margin: 0;">
-                                <button type="submit" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
-                                    Apagar
-                                </button>
+                            <form action="{{ url_for('table.delete_mesa', mesa_id=mesa.id) }}" method="POST" class="inline-form">
+                                <button type="submit" class="btn btn-sm btn-danger">Apagar</button>
                             </form>
                         {% else %}
-                            <form action="{{ url_for('table.sair_da_mesa', mesa_id=mesa.id) }}" method="POST" style="margin: 0;">
-                                <button type="submit" style="background: #b91c1c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
-                                    Abandonar
-                                </button>
+                            <form action="{{ url_for('table.sair_da_mesa', mesa_id=mesa.id) }}" method="POST" class="inline-form">
+                                <button type="submit" class="btn btn-sm btn-danger">Abandonar</button>
                             </form>
                         {% endif %}
                     </div>
                 </div>
             {% endfor %}
         {% else %}
-            <div style="text-align: center; padding: 20px; border: 2px dashed #334155; border-radius: 8px;">
-                <p style="color: #64748b; margin: 0;">Você ainda não participa de nenhuma mesa.</p>
+            <div class="empty-state">
+                <p>Você ainda não participa de nenhuma mesa ativa.</p>
             </div>
         {% endif %}
     </div>
 
-    <div style="height: 1px; background: #334155; margin-bottom: 25px;"></div>
+    <div class="divider"></div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <form action="{{ url_for('table.criar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
-            <label style="display: block; color: #94a3b8; margin-bottom: 8px; font-size: 0.85rem;">CRIAR NOVA MESA</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" name="nome_mesa" placeholder="Nome da mesa..." required 
-                       style="flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white;">
-                <button type="submit" style="background: #10b981; color: white; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Criar</button>
+    <div class="mesas-forms-grid">
+        <form action="{{ url_for('table.criar_mesa') }}" method="POST" class="hub-action-form">
+            <label>CRIAR NOVA MESA</label>
+            <div class="form-inline-group">
+                <input type="text" name="nome_mesa" placeholder="Nome da mesa..." required>
+                <button type="submit" class="btn">Criar</button>
             </div>
         </form>
 
-        <form action="{{ url_for('table.entrar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
-            <label style="display: block; color: #94a3b8; margin-bottom: 8px; font-size: 0.85rem;">ENTRAR POR CÓDIGO</label>
-            <div style="display: flex; gap: 10px;">
-                <input type="text" name="codigo_mesa" placeholder="Código do mestre..." required 
-                       style="flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid #334155; background: #0f172a; color: white;">
-                <button type="submit" style="background: #f59e0b; color: #000; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;">Entrar</button>
+        <form action="{{ url_for('table.entrar_mesa') }}" method="POST" class="hub-action-form">
+            <label>ENTRAR POR CÓDIGO</label>
+            <div class="form-inline-group">
+                <input type="text" name="codigo_mesa" placeholder="Código da mesa..." required>
+                <button type="submit" class="btn btn-glow">Entrar</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="card" style="margin-top: 30px; border-top: 3px solid #007bff;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0;">CONJURADORES</h3>
-        <a href="/create/conjurador" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+<div class="card entities-card">
+    <div class="card-section-header">
+        <h3>CONJURADOR</h3>
+        <a href="/create/conjurador" class="btn btn-sm">Criar +</a>
     </div>
     {% if conjuradores %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
+        <table class="hub-table">
             <thead>
-                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
-                    <th style="padding: 8px; color: var(--accent);">Nome</th>
-                    <th style="padding: 8px; color: var(--accent);">Escola</th>
-                    <th style="padding: 8px; color: var(--accent);">Grau</th>
-                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                <tr>
+                    <th>Nome</th>
+                    <th>Escola de Combate</th>
+                    <th>Grau</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for conj in conjuradores %}
-                <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px; font-weight: bold;">🧙‍♂️ {{ conj.nome or conj.NOME or conj[1] }}</td>
-                    <td style="padding: 8px;">
-                        <span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">
-                            {{ conj.escola or conj.ESCOLA or conj[3] or "Sem Escola" }}
-                        </span>
-                    </td>
-                    <td style="padding: 8px;">Grau {{ conj.grau or conj.GRAU or conj[2] }}</td>
-                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
-                        <a href="/edit/conjurador/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('sheet.delete_entity', sheet_type='conjurador', entity_id=conj.id or conj.ID or conj[0]) }}" method="POST" style="margin: 0;">
-                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
+                <tr>
+                    <td class="font-bold">{{ conj.nome or conj.NOME or conj[1] }}</td>
+                    <td><span class="table-tag">{{ conj.escola or conj.ESCOLA or conj[3] or "Sem Escola" }}</span></td>
+                    <td>Grau {{ conj.grau or conj.GRAU or conj[4] }}</td>
+                    <td class="table-actions-cell">
+                        <a href="/edit/conjurador/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary btn-sm">Editar</a>
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='conjurador', entity_id=conj.id or conj.ID or conj[0]) }}" method="POST" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-danger">Apagar</button>
                         </form>
                     </td>
                 </tr>
@@ -152,39 +100,35 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhum conjurador cadastrado localmente ainda.</p>
+        <p class="empty-table-text">Nenhum conjurador cadastrado localmente.</p>
     {% endif %}
 </div>
 
-<div class="card" style="margin-top: 20px; border-top: 3px solid var(--accent2);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0;">CONJURAÇÕES</h3>
-        <a href="/create/conjuracao" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+<div class="card entities-card border-cyan">
+    <div class="card-section-header">
+        <h3>CONJURAÇÕES</h3>
+        <a href="/create/conjuracao" class="btn btn-sm">Criar +</a>
     </div>
     {% if conjuracoes %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
+        <table class="hub-table">
             <thead>
-                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
-                    <th style="padding: 8px; color: var(--accent);">Nome</th>
-                    <th style="padding: 8px; color: var(--accent);">Matriz</th>
-                    <th style="padding: 8px; color: var(--accent);">Custo</th>
-                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                <tr>
+                    <th>Nome</th>
+                    <th>Matriz Arcana</th>
+                    <th>Custo</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for conj in conjuracoes %}
-                <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px; font-weight: bold;">✨ {{ conj.nome or conj.NOME or conj[1] }}</td>
-                    <td style="padding: 8px;">
-                        <span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">
-                            {{ conj.matriz or conj.MATRIZ or conj[2] or "Sem Matriz" }}
-                        </span>
-                    </td>
-                    <td style="padding: 8px;">{{ conj.custo or conj.CUSTO or conj[4] }} Conexão</td>
-                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
-                        <a href="/edit/conjuracao/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('sheet.delete_entity', sheet_type='conjuracao', entity_id=conj[0]) }}" method="POST" style="display:inline;">
-                            <button type="submit" class="btn" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Apagar</button>
+                <tr>
+                    <td class="font-bold">{{ conj.nome or conj.NOME or conj[1] }}</td>
+                    <td><span class="table-tag">{{ conj.matriz or conj.MATRIZ or conj[2] or "Sem Matriz" }}</span></td>
+                    <td>{{ conj.custo or conj.CUSTO or conj[4] }} Conexão</td>
+                    <td class="table-actions-cell">
+                        <a href="/edit/conjuracao/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary btn-sm">Editar</a>
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='conjuracao', entity_id=conj[0]) }}" method="POST" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-danger">Apagar</button>
                         </form>
                     </td>   
                 </tr>
@@ -192,35 +136,35 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhuma conjuração cadastrada localmente ainda.</p>
+        <p class="empty-table-text">Nenhuma conjuração cadastrada localmente.</p>
     {% endif %}
 </div>
 
-<div class="card" style="margin-top: 20px; border-top: 3px solid #28a745;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0;">FAMILIARES</h3>
-        <a href="/create/familiar" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+<div class="card entities-card">
+    <div class="card-section-header">
+        <h3>FAMILIARES</h3>
+        <a href="/create/familiar" class="btn btn-sm">Criar +</a>
     </div>
     {% if familiares %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
+        <table class="hub-table">
             <thead>
-                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
-                    <th style="padding: 8px; color: var(--accent);">Nome</th>
-                    <th style="padding: 8px; color: var(--accent);">Espécie</th>
-                    <th style="padding: 8px; color: var(--accent);">Ameaça</th>
-                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                <tr>
+                    <th>Nome</th>
+                    <th>Espécie</th>
+                    <th>Ameaça</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for familiar in familiares %}
-                <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px; font-weight: bold;"> {{ familiar.nome or familiar.NOME or familiar[1] }}</td>
-                    <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ familiar.especie or familiar.ESPECIE or familiar[2] }}</span></td>
-                    <td style="padding: 8px;">Nível {{ familiar.ameaca or familiar.AMEACA or familiar[3] }}</td>
-                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
-                        <a href="/edit/familiar/{{ familiar.id or familiar.ID or familiar[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('sheet.delete_entity', sheet_type='familiar', entity_id=familiar.id or familiar.ID or familiar[0]) }}" method="POST" style="margin: 0;">
-                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
+                <tr>
+                    <td class="font-bold">{{ familiar.nome or familiar.NOME or familiar[1] }}</td>
+                    <td><span class="table-tag">{{ familiar.especie or familiar.ESPECIE or familiar[2] }}</span></td>
+                    <td>Nível {{ familiar.ameaca or familiar.AMEACA or familiar[3] }}</td>
+                    <td class="table-actions-cell">
+                        <a href="/edit/familiar/{{ familiar.id or familiar.ID or familiar[0] }}" class="btn btn-secondary btn-sm">Editar</a>
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='familiar', entity_id=familiar.id or familiar.ID or familiar[0]) }}" method="POST" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-danger">Apagar</button>
                         </form>
                     </td>
                 </tr>
@@ -228,35 +172,35 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhum familiar cadastrado localmente ainda.</p>
+        <p class="empty-table-text">Nenhum familiar cadastrado localmente.</p>
     {% endif %}
 </div>
 
-<div class="card" style="margin-top: 20px; border-top: 3px solid #ffc107;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h3 style="margin: 0;">RELÍQUIAS</h3>
-        <a href="/create/reliquia" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+<div class="card entities-card">
+    <div class="card-section-header">
+        <h3>RELÍQUIAS</h3>
+        <a href="/create/reliquia" class="btn btn-sm">Criar +</a>
     </div>
     {% if reliquias %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
+        <table class="hub-table">
             <thead>
-                <tr style="border-bottom: 1px solid var(--border); text-align: left;">
-                    <th style="padding: 8px; color: var(--accent);">Nome</th>
-                    <th style="padding: 8px; color: var(--accent);">Nível</th>
-                    <th style="padding: 8px; color: var(--accent);">Matriz</th>
-                    <th style="padding: 8px; text-align: right; color: var(--accent);">Ações</th>
+                <tr>
+                    <th>Nome</th>
+                    <th>Nível</th>
+                    <th>Matriz Essencial</th>
+                    <th class="text-right">Ações</th>
                 </tr>
             </thead>
             <tbody>
                 {% for reliquia in reliquias %}
-                <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px; font-weight: bold;">💍 {{ reliquia.nome or reliquia.NOME or reliquia[1] }}</td>
-                    <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ reliquia.nivel or reliquia.NIVEL or reliquia[2] }}</span></td>
-                    <td style="padding: 8px;">{{ reliquia.matriz or reliquia.MATRIZ or reliquia[3] }}</td>
-                    <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
-                        <a href="/edit/reliquia/{{ reliquia.id or reliquia.ID or reliquia[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('sheet.delete_entity', sheet_type='reliquia', entity_id=reliquia.id or reliquia.ID or reliquia[0]) }}" method="POST" style="margin: 0;">
-                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
+                <tr>
+                    <td class="font-bold">{{ reliquia.nome or reliquia.NOME or reliquia[1]}}</td>
+                    <td>Nível {{ reliquia.nivel or reliquia.NIVEL or reliquia[2] }}</td>
+                    <td><span class="table-tag">{{ reliquia.matriz or reliquia.MATRIZ or reliquia[3] }}</span></td>
+                    <td class="table-actions-cell">
+                        <a href="/edit/reliquia/{{ reliquia.id or reliquia.ID or reliquia[0] }}" class="btn btn-secondary btn-sm">Editar</a>
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='reliquia', entity_id=reliquia.id or reliquia.ID or reliquia[0]) }}" method="POST" class="inline-form">
+                            <button type="submit" class="btn btn-sm btn-danger">Apagar</button>
                         </form>
                     </td>
                 </tr>
@@ -264,26 +208,64 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhuma relíquia cadastrada localmente ainda.</p>
+        <p class="empty-table-text">Nenhuma relíquia cadastrada localmente.</p>
     {% endif %}
 </div>
 
+<style>
+    .hub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+    .hub-header h1 { margin: 0; font-family: 'Georgia', serif; color: var(--text); font-size: 28px; }
+    .btn-sm { padding: 6px 12px !important; font-size: 12px !important; }
+    .btn-danger { background: #b91c1c !important; color: #f8fafc !important; }
+    .btn-danger:hover { background: #dc3545 !important; box-shadow: 0 0 10px rgba(220, 53, 69, 0.3) !important; }
+    .btn-glow { box-shadow: 0 0 10px rgba(11, 244, 163, 0.15); }
+    .mesa-card-container { border-top: 4px solid var(--accent); }
+    .mesa-card-container h2 { margin: 0 0 5px 0; font-size: 20px; color: var(--text); }
+    .section-description { color: var(--muted); margin: 0 0 20px 0; font-size: 14px; }
+    .mesas-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+    .mesa-item { padding: 16px; background: var(--panel); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
+    .mesa-title { color: var(--text); font-size: 16px; display: block; margin-bottom: 4px; }
+    .mesa-code { color: var(--muted); }
+    .clickable-code { background: var(--bg); padding: 3px 8px; border-radius: 4px; color: var(--accent); cursor: pointer; display: inline-block; border: 1px solid var(--border); font-family: monospace; font-size: 13px; transition: background 0.2s; }
+    .clickable-code:hover { background: var(--border); }
+    .mesa-actions { display: flex; gap: 8px; align-items: center; }
+    .inline-form { margin: 0; display: inline; }
+    .empty-state { text-align: center; padding: 30px; border: 2px dashed var(--border); border-radius: 6px; color: var(--muted); font-size: 14px; }
+    .divider { height: 1px; background: var(--border); margin: 25px 0; }
+    .mesas-forms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .hub-action-form label { display: block; color: var(--muted); margin-bottom: 8px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
+    .form-inline-group { display: flex; gap: 10px; }
+    .form-inline-group input { flex-grow: 1; }
+    .entities-card { border-top: 3px solid var(--accent); }
+    .entities-card.border-cyan { border-top-color: var(--accent); }
+    .card-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .card-section-header h3 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
+    .hub-table { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
+    .hub-table th { padding: 10px 8px; color: var(--muted); text-align: left; font-size: 13px; border-bottom: 2px solid var(--border); }
+    .hub-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+    .font-bold { font-weight: bold; }
+    .table-tag { background: var(--panel); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; font-size: 12px; color: var(--text); }
+    .table-actions-cell { text-align: right; display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+    .text-right { text-align: right !important; }
+    .empty-table-text { color: var(--muted); font-size: 13px; font-style: italic; margin: 10px 0 0 0; }
+</style>
+
 <script>
-function copiarTexto(elemento, codigo) {
-    navigator.clipboard.writeText(codigo).then(() => {
-        const icone = elemento.querySelector('.icone-copia');
-        const originalIcone = icone.innerText;
-        
-        icone.innerText = "✓";
-        elemento.style.background = "#064e3b"; 
-        elemento.style.color = "#fff";
-        
-        setTimeout(() => {
-            icone.innerText = originalIcone;
-            elemento.style.background = "#0f172a";
-            elemento.style.color = "#38bdf8";
-        }, 2000);
-    });
-}
+    function copiarTexto(elemento, codigo) {
+        navigator.clipboard.writeText(codigo).then(() => {
+            const icone = elemento.querySelector('.icone-copia');
+            const originalIcone = icone.innerText;
+            icone.innerText = "✓";
+            elemento.style.background = "#064e3b"; 
+            elemento.style.color = "#fff";
+            elemento.style.borderColor = "#0bf4a3";
+            setTimeout(() => {
+                icone.innerText = originalIcone;
+                elemento.style.background = "var(--bg)";
+                elemento.style.color = "var(--accent)";
+                elemento.style.borderColor = "var(--border)";
+            }, 2000);
+        });
+    }
 </script>
 {% endblock %}

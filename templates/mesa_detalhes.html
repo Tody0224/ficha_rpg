@@ -28,11 +28,11 @@
                 </a>
 
                 {% if e_mestre %}
-                    <form action="{{ url_for('table .delete_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Apagar a mesa {{ mesa_nome }} definitivamente? Esta ação é irreversível.');">
+                    <form action="{{ url_for('table.delete_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Apagar a mesa {{ mesa_nome }} definitivamente? Esta ação é irreversível.');">
                         <button type="submit" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Excluir Mesa</button>
                     </form>
                 {% else %}
-                    <form action="{{ url_for('routes.sair_da_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja deixar esta mesa? Suas fichas não aparecerão mais aqui.');">
+                    <form action="{{ url_for('table.sair_da_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja deixar esta mesa? Suas fichas não aparecerão mais aqui.');">
                         <button type="submit" style="background: #b91c1c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Abandonar Mesa</button>
                     </form>
                 {% endif %}
@@ -62,7 +62,7 @@
                     {% for ficha in j.fichas %}
                         <li style="background: #1e293b; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center;">
                             <span>✨ <strong>{{ ficha.NOME }}</strong> <small style="color: #64748b;">({{ ficha.tipo }})</small></span>
-                            <a href="{{ url_for('routes.edit_entity', sheet_type=ficha.tipo, entity_id=ficha.id) }}" 
+                            <a href="{{ url_for('sheet.edit_entity', sheet_type=ficha.tipo, entity_id=ficha.id) }}" 
                                style="color: #3b82f6; text-decoration: none; font-size: 0.85rem; font-weight: bold;">Ver Ficha →</a>
                         </li>
                     {% endfor %}

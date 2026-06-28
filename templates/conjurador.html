@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="header">
-    <h1>🧙‍♂️ {% if entity %}EDITAR CONJURADOR{% else %}NOVA FICHA DE CONJURADOR{% endif %}</h1>
+    <h1>{% if entity %}EDITAR CONJURADOR{% else %}FICHA DE CONJURADOR{% endif %}</h1>
     <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
 </div>
 
@@ -45,7 +45,10 @@
             <div class="form-group"><label>Vitalidade</label><input type="number" class="attr-input" name="VITALIDADE" id="VITALIDADE" value="{{ entity.vitalidade if entity else (entity.VITALIDADE if entity else '1') }}" min="0" max="3" onchange="calculateResources()"></div>
             <div class="form-group"><label>Influência</label><input type="number" class="attr-input" name="INFLUÊNCIA" id="INFLUÊNCIA" value="{{ entity.influencia if entity else (entity.INFLUÊNCIA if entity else '1') }}" min="0" max="3"></div>
             
-            <div class="form-group"><label>Sintonia</label><input type="number" class="attr-input" name="SINTONIA_ATRIB" id="SINTONIA" value="{{ entity.sintonia if entity else (entity.SINTONIA_ATRIB if entity else (entity.SINTONIA if entity else '1')) }}" min="0" max="3" onchange="calculateResources()"></div>
+            <div class="form-group">
+    <label>Sintonia</label>
+    <input type="number" class="attr-input" name="SINTONIA" id="SINTONIA" value="{{ entity.sintonia if entity else (entity.SINTONIA if entity else '1') }}" min="0" max="3" onchange="calculateResources()">
+</div>
             
             <div class="form-group"><label>Astúcia</label><input type="number" class="attr-input" name="ASTÚCIA" id="ASTÚCIA" value="{{ entity.astucia if entity else (entity.ASTÚCIA if entity else '1') }}" min="0" max="3" onchange="updatePericiasCount()"></div>
         </div>
@@ -75,10 +78,10 @@
         <div class="form-group"><label>Nome da Relíquia Vinculada</label><input type="text" name="RELIQUIA" id="RELIQUIA" value="{{ entity.reliquia if entity else (entity.RELIQUIA if entity else '') }}"></div>
     </div>
 
-    <div style="display: flex; gap: 10px; margin-top: 20px;">
-        <button type="button" class="btn" onclick="submeterFormulario('pdf')">📄 Gerar PDF do Conjurador</button>
-        <button type="button" class="btn btn-secondary" onclick="submeterFormulario('database')">💾 Salvar no Banco de Dados</button>
-        <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
+    <div class="form-actions-group">
+        <button type="button" class="btn" onclick="submeterFormulario('pdf')">Gerar PDF Conjurador</button>
+        <button type="button" class="btn btn-secondary" onclick="submeterFormulario('database')">Salvar no Banco de Dados</button>
+        <button type="button" class="btn btn-secondary" onclick="activateTestMode()">Preencher Aleatório</button>
     </div>
 </form>
 
@@ -202,14 +205,18 @@ function activateTestMode() {
 function submeterFormulario(tipoAcao) {
     const formElement = document.getElementById('sheetForm');
     
-    if (!formElement.checkValidity()) {
-        formElement.reportValidity();
-        return;
-    }
-
+    // Configura o tipo de ação no input hidden
     document.getElementById('action_type').value = tipoAcao;
 
     if (tipoAcao === 'database') {
+        // Para salvar no banco, a validação de campos obrigatórios é EXIGIDA
+        formElement.removeAttribute('novalidate');
+        if (!formElement.checkValidity()) {
+            formElement.reportValidity();
+            return;
+        }
+
+        // Verifica a sessão antes de enviar para o banco de dados
         fetch('/api/active_users')
             .then(res => {
                 if (res.redirected || res.status === 401) {
@@ -222,6 +229,8 @@ function submeterFormulario(tipoAcao) {
                 soliciarLoginFicha();
             });
     } else {
+        // Se for PDF, ignora os avisos de campos obrigatórios vazios do navegador e gera direto
+        formElement.setAttribute('novalidate', 'true');
         formElement.submit();
     }
 }

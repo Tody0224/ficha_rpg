@@ -2,44 +2,204 @@
 <html lang="pt-br">
     <head>
         <meta charset="UTF-8">
-        <title>✦ Gerador de Fichas RPG</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CONJURADORES</title>
+        <link rel="shortcut icon" href="{{ url_for('static', filename='logo_conjuradores.png') }}" type="image/x-icon">
         <style>
             :root {
-                --bg: #0F1923; --panel: #1A2A38; --card: #1F3347;
-                --accent: #C8973A; --accent2: #3A7CA5; --text: #E8DCC8;
-                --muted: #7A8FA0; --border: #2D4A62;
+                --bg: #0a0f18; 
+                --panel: #111a24; 
+                --card: #16222f;
+                --border: #233547;
+                --accent: #20bf55;            
+                --text: #f8fafc;         
+                --muted: #94a3b8;        
             }
-            body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 20px; }
-            .container { max-width: 800px; margin: 0 auto; }
-            .header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 20px; }
-            .header h1 { color: var(--accent); font-family: 'Georgia', serif; margin: 0; }
-            .card { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--accent); padding: 20px; margin-bottom: 15px; border-radius: 4px; }
+
+            body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+
+            /* NAVBAR FIXA SUPERIOR EXPANDIDA */
+            .main-navbar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 75px;
+                background-color: rgba(17, 26, 36, 0.95);
+                backdrop-filter: blur(10px);
+                border-bottom: 2px solid rgba(11, 244, 163, 0.25);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+                z-index: 9999;
+            }
+
+            .nav-container {
+                max-width: 1000px; /* Um pouco maior para caber tudo em linha */
+                margin: 0 auto;
+                height: 100%;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+            }
+
+            .nav-logo-link {
+                display: flex;
+                align-items: center;
+                height: 100%;
+            }
+
+            .nav-logo {
+                height: 65px;
+                width: auto;
+                transition: transform 0.3s ease;
+            }
+
+            .nav-logo:hover { transform: scale(1.05); }
+
+            /* ELEMENTOS DO USUÁRIO INTEGRADOS NA NAVBAR */
+            .nav-right-side {
+                display: flex;
+                align-items: center;
+                gap: 20px;
+            }
+
+            .nav-status-info {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+                text-align: right;
+            }
+
+            .nav-user-label {
+                margin: 0;
+                font-size: 13px;
+                color: var(--muted);
+            }
+            .nav-user-label strong { color: var(--accent); }
+            .nav-user-label.visitor { color: #f59e0b; font-style: italic; }
+
+            .nav-online-count {
+                font-size: 11px;
+                color: var(--accent);
+                font-weight: bold;
+                margin-top: 2px;
+                letter-spacing: 0.5px;
+            }
+
+            .nav-auth-actions {
+                display: flex;
+                gap: 8px;
+            }
+
+            .btn-nav {
+                padding: 6px 14px;
+                font-size: 12px;
+                font-weight: bold;
+                border-radius: 4px;
+                text-decoration: none;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+            .btn-nav-primary { background: var(--accent); color: var(--bg); border: none; }
+            .btn-nav-primary:hover { background: var(--accent); }
+            .btn-nav-secondary { background: var(--panel); color: var(--muted); border: 1px solid var(--border); }
+            .btn-nav-secondary:hover { background: var(--border); color: var(--text); }
+            .btn-nav-danger { background: #b91c1c; color: #f8fafc; border: none; }
+            .btn-nav-danger:hover { background: #dc3545; }
+
+            .container { max-width: 800px; margin: 105px auto 40px auto; padding: 0 20px; }
+            .header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 25px; }
+            .header h1 { color: var(--accent); font-family: 'Georgia', serif; margin: 0; letter-spacing: 1px; text-shadow: 0 0 10px rgba(11, 244, 163, 0.2); }
+            .card { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--accent); padding: 20px; margin-bottom: 20px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
             .form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
-            label { font-weight: bold; margin-bottom: 5px; color: var(--muted); font-size: 14px;}
-            input, select, textarea { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 8px; border-radius: 4px; font-size: 14px; }
-            input:focus, select:focus, textarea:focus { border-color: var(--accent); outline: none; }
-            .btn { background: var(--accent); color: var(--bg); font-weight: bold; border: none; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 14px; }
-            .btn:hover { background: var(--accent2); color: var(--text); }
-            .btn-secondary { background: var(--panel); color: var(--muted); border: 1px solid var(--border); margin-right: 10px;}
+            label { font-weight: bold; margin-bottom: 6px; color: var(--muted); font-size: 13px; letter-spacing: 0.5px; }
+            input, select, textarea { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 4px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
+            input[type="text"], input[type="number"], select, textarea { width: 100%; }
+            input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(11, 244, 163, 0.2); outline: none; }
+            .btn { background: var(--accent); color: var(--bg); font-weight: bold; border: none; padding: 12px 24px; cursor: pointer; border-radius: 4px; font-size: 14px; transition: all 0.2s; }
+            .btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 12px rgba(11, 244, 163, 0.3); }
+            .btn-secondary { background: var(--panel); color: var(--muted); border: 1px solid var(--border); margin-right: 10px; }
+            .btn-secondary:hover { background: var(--border); color: var(--text); }
             .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
             .checkbox-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
             .checkbox-item { display: flex; align-items: center; font-size: 13px; }
-            .checkbox-item input { margin-right: 8px; }
+            .checkbox-item input { margin-right: 8px; width: auto !important; height: auto !important; }
 
-            input { 
-                display: block !important; 
-                visibility: visible !important; 
-                opacity: 1 !important; 
-                background: #1A2A38 !important; 
-                color: white !important; 
-                border: 1px solid white !important;
-                height: 24px !important;
-        }
-        </style>
+            .form-actions-group {
+                display: flex; 
+                gap: 12px; 
+                margin-top: 25px;
+                width: 100%;
+            }
+
+            .form-actions-group .btn {
+                flex: 1; 
+                padding: 14px 16px;
+                font-size: 14px;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+            .form-actions-group .btn-secondary {
+                background: var(--panel);
+                color: var(--text);
+                border: 1px solid var(--border);
+                margin: 0;
+            }
+
+            .form-actions-group .btn-secondary:hover {
+                background: var(--border);
+                border-color: var(--accent2);
+                color: var(--accent2);
+            }
+    </style>
     </head>
     <body>
+
+        <nav class="main-navbar">
+            <div class="nav-container">
+                <a href="/" class="nav-logo-link">
+                    <img src="{{ url_for('static', filename='logo_conjuradores.png') }}" alt="Logo Conjuradores" class="nav-logo">
+                </a>
+                
+                <div class="nav-right-side">
+                    <div class="nav-status-info">
+                        {% if current_user.is_authenticated %}
+                            <p class="nav-user-label">CONJURADOR: <strong>{{ current_user.username }}</strong></p>
+                        {% else %}
+                            <p class="nav-user-label visitor">Modo Visitante</p>
+                        {% endif %}
+                        <span class="nav-online-count">🟢 ONLINE: <span id="user-count">0</span></span>
+                    </div>
+
+                    <div class="nav-auth-actions">
+                        {% if current_user.is_authenticated %}
+                            <a href="{{ url_for('auth.logout') }}" class="btn-nav btn-nav-danger">Sair</a>
+                        {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="btn-nav btn-nav-primary">Entrar</a>
+                            <a href="{{ url_for('auth.register') }}" class="btn-nav btn-nav-secondary">Registrar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </nav>
+
         <div class="container">
             {% block content %}{% endblock %}
         </div>
+
+        <script>
+            function updateOnlineUsers() {
+                fetch('/api/active_users')
+                    .then(res => res.json())
+                    .then(data => {
+                        const countEl = document.getElementById('user-count');
+                        if (countEl) countEl.innerText = data.count;
+                    })
+                    .catch(err => console.error("Erro ao carregar rede de magos:", err));
+            }
+            setInterval(updateOnlineUsers, 30000);
+            updateOnlineUsers();
+        </script>
     </body>
 </html>
