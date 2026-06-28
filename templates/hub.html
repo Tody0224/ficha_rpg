@@ -116,18 +116,18 @@
                 </tr>
             </thead>
             <tbody>
-                {% for conjurador in conjuradores %}
+                {% for conj in conjuradores %}
                 <tr style="border-bottom: 1px solid var(--border);">
-                    <td style="padding: 8px; font-weight: bold;">👤 {{ conjurador.nome or conjurador.NOME or conjurador[1] }}</td>
+                    <td style="padding: 8px; font-weight: bold;">🧙‍♂️ {{ conj.nome or conj.NOME or conj[1] }}</td>
                     <td style="padding: 8px;">
                         <span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">
-                            {{ conjurador.escola or conjurador.ESCOLA or conjurador[4] or "Não Informada" }}
+                            {{ conj.escola or conj.ESCOLA or conj[3] or "Sem Escola" }}
                         </span>
                     </td>
-                    <td style="padding: 8px;">Grau {{ conjurador.grau or conjurador.GRAU or conjurador[3] }}</td>
+                    <td style="padding: 8px;">Grau {{ conj.grau or conj.GRAU or conj[2] }}</td>
                     <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
-                        <a href="/edit/conjurador/{{ conjurador.id or conjurador.ID or conjurador[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('routes.delete_entity', sheet_type='conjuracao', entity_id=(conj.id or conj.ID or conj[0]), _anchor='secao-conjuracao') }}"></form>
+                        <a href="/edit/conjurador/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
+                        <form action="{{ url_for('routes.delete_entity', sheet_type='conjurador', entity_id=conj.id or conj.ID or conj[0]) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar este conjurador?');">
                             <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
                         </form>
                     </td>

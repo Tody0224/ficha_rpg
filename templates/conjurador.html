@@ -22,7 +22,7 @@
             </div>
             <div class="form-group">
                 <label>Grau de Ressonância *</label>
-                <input type="number" name="GRAU" id="GRAU" value="{{ entity.grau if entity else (entity.GRAU if entity else '1') }}" required>
+                <input type="number" name="GRAU" id="GRAU" value="{{ entity.grau if entity else (entity.GRAU if entity else '1') }}" required onchange="calculateResources()">
             </div>
             <div class="form-group">
                 <label>Escola de Combate *</label>
@@ -32,7 +32,7 @@
                     <option value="{{ e }}" {% if entity and (entity.escola == e or entity.ESCOLA == e) %}selected{% endif %}>{{ e }}</option>
                     {% endfor %}
                 </select>
-                <input type="hidden" name="escola" id="escola_hidden" value="{{ entity.escola if entity else (entity.ESCOLA if entity else '') }}">
+                <input type="hidden" name="escola" id="escola_hidden" value="{% if entity %}{{ entity.escola if entity.escola else entity.ESCOLA }}{% endif %}">
             </div>
         </div>
     </div>
@@ -40,11 +40,13 @@
     <div class="card">
         <h3>DISTRIBUIÇÃO DE ATRIBUTOS</h3>
         <div class="grid-3">
-            <div class="form-group"><label>Brutalidade</label><input type="number" class="attr-input" name="BRUTALIDADE" id="BRUTALIDADE" value="{{ entity.brutalidade if entity else (entity.BRUTALIDADE if entity else '1') }}" min="0" max="3" onchange="updatePericiasCount()"></div>
+            <div class="form-group"><label>Brutalidade</label><input type="number" class="attr-input" name="BRUTALIDADE" id="BRUTALIDADE" value="{{ entity.brutalidade if entity else (entity.BRUTALIDADE if entity else '1') }}" min="0" max="3"></div>
             <div class="form-group"><label>Rapidez</label><input type="number" class="attr-input" name="RAPIDEZ" id="RAPIDEZ" value="{{ entity.rapidez if entity else (entity.RAPIDEZ if entity else '1') }}" min="0" max="3"></div>
             <div class="form-group"><label>Vitalidade</label><input type="number" class="attr-input" name="VITALIDADE" id="VITALIDADE" value="{{ entity.vitalidade if entity else (entity.VITALIDADE if entity else '1') }}" min="0" max="3" onchange="calculateResources()"></div>
             <div class="form-group"><label>Influência</label><input type="number" class="attr-input" name="INFLUÊNCIA" id="INFLUÊNCIA" value="{{ entity.influencia if entity else (entity.INFLUÊNCIA if entity else '1') }}" min="0" max="3"></div>
-            <div class="form-group"><label>Sintonia</label><input type="number" class="attr-input" name="SINTONIA" id="SINTONIA" value="{{ entity.sintonia if entity else (entity.SINTONIA if entity else '1') }}" min="0" max="3" onchange="calculateResources()"></div>
+            
+            <div class="form-group"><label>Sintonia</label><input type="number" class="attr-input" name="SINTONIA_ATRIB" id="SINTONIA" value="{{ entity.sintonia if entity else (entity.SINTONIA_ATRIB if entity else (entity.SINTONIA if entity else '1')) }}" min="0" max="3" onchange="calculateResources()"></div>
+            
             <div class="form-group"><label>Astúcia</label><input type="number" class="attr-input" name="ASTÚCIA" id="ASTÚCIA" value="{{ entity.astucia if entity else (entity.ASTÚCIA if entity else '1') }}" min="0" max="3" onchange="updatePericiasCount()"></div>
         </div>
         <div style="margin-top: 15px; background: var(--panel); padding: 10px; border-radius: 4px;">
@@ -81,7 +83,6 @@
 </form>
 
 <script>
-// Base fixa de perícias permitidas pelo sistema (2 base + 2 escola)
 const BASE_PERICIAS = 4; 
 
 function getPericiasMax() {
@@ -115,11 +116,18 @@ function validatePericiasLimit(element) {
 }
 
 function calculateResources() {
+    const grauInput = document.getElementById('GRAU');
+    const vitInput = document.getElementById('VITALIDADE');
+    const sintInput = document.getElementById('SINTONIA'); // Captura via ID "SINTONIA"
+
+    if (!grauInput || !vitInput || !sintInput) return;
+
     const data = {
-        grau: document.getElementById('GRAU').value,
-        vitalidade: document.getElementById('VITALIDADE').value,
-        sintonia: document.getElementById('SINTONIA').value
+        grau: grauInput.value,
+        vitalidade: vitInput.value,
+        sintonia: sintInput.value
     };
+
     fetch('/api/calculate_resources', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -129,7 +137,8 @@ function calculateResources() {
     .then(res => {
         const out = document.getElementById('resourceOutput');
         if (out) out.innerText = `Vida Máxima: ${res.vida} | Conexão Máxima: ${res.conexao}`;
-    });
+    })
+    .catch(err => console.error("Erro ao calcular recursos:", err));
 }
 
 function activateTestMode() {
@@ -140,31 +149,33 @@ function activateTestMode() {
         document.getElementById('IDADE').value = data.IDADE || data.idade || data.v_idade || 20;
         document.getElementById('GRAU').value = data.GRAU || data.grau || data.v_grau || 1;
         
-        // Define o valor do select e atualiza o input oculto (escola) para enviar corretamente pro Python
         const escolhaEscola = data.ESCOLA || data.escola || data.v_escola || "";
         document.getElementById('ESCOLA').value = escolhaEscola;
         document.getElementById('escola_hidden').value = escolhaEscola;
         
-        // Carrega atributos primeiro para o cálculo do limite máximo de perícias estar correto
         const attrs = data.attributes || data;
         const keys = ['BRUTALIDADE', 'RAPIDEZ', 'VITALIDADE', 'INFLUÊNCIA', 'SINTONIA', 'ASTÚCIA'];
         keys.forEach(k => {
             const el = document.getElementById(k);
             if (el) {
-                el.value = attrs[k] !== undefined ? attrs[k] : (attrs[k.toLowerCase()] !== undefined ? attrs[k.toLowerCase()] : 1);
+                // Mapeamento compatível para capturar do mock data
+                let valor = attrs[k];
+                if (valor === undefined && k === 'SINTONIA') {
+                    valor = attrs['SINTONIA_ATRIB'] !== undefined ? attrs['SINTONIA_ATRIB'] : attrs['sintonia'];
+                }
+                if (valor === undefined) valor = attrs[k.toLowerCase()];
+                
+                el.value = valor !== undefined ? valor : 1;
             }
         });
         
-        // Reseta checkboxes
         document.querySelectorAll('input[name="pericias"]').forEach(cb => cb.checked = false);
         
-        // Pega lista de perícias
         const listaPericias = data.PERICIAS || data.pericias || [];
         const periciasArray = typeof listaPericias === 'string' ? listaPericias.split(', ') : listaPericias;
         
-        // Aplica as perícias respeitando o limite recalculado da Astúcia
-        let inseridas = 0;
         const maxPermitido = getPericiasMax();
+        let inseridas = 0;
 
         periciasArray.forEach(p => {
             const nomeLimpo = p.trim();
@@ -186,8 +197,10 @@ function activateTestMode() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    calculateResources();
-    updatePericiasCount();
+    setTimeout(() => {
+        calculateResources();
+        updatePericiasCount();
+    }, 100);
 });
 </script>
 {% endblock %}
