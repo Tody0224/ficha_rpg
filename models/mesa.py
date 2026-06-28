@@ -6,7 +6,6 @@ class MesaModel:
     def init_db():
         conn = sqlite3.connect('database.db')
         cursor = conn.cursor()
-        # Tabela de Mesas
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS mesas (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -16,7 +15,6 @@ class MesaModel:
                 FOREIGN KEY(mestre_id) REFERENCES usuarios(id)
             )
         ''')
-        # Tabela de Participantes
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS participantes (
                 mesa_id INTEGER,
@@ -42,21 +40,9 @@ class MesaModel:
     @staticmethod
     def get_mesas_por_usuario(usuario_id):
         conn = sqlite3.connect('database.db')
-        conn.row_factory = sqlite3.Row  # Isso permite acessar as colunas pelo nome
-        cursor = conn.cursor()
-        # Busca mesas onde o usuário é mestre
-        cursor.execute("SELECT * FROM mesas WHERE mestre_id = ?", (usuario_id,))
-        mesas = cursor.fetchall()
-        conn.close()
-        return [dict(mesa) for mesa in mesas]
-    
-    @staticmethod
-    def get_mesas_por_usuario(usuario_id):
-        import sqlite3 # Certifique-se de ter o import se necessário
-        conn = sqlite3.connect('database.db')
+        conn.row_factory = sqlite3.Row  # Garante que acessamos por nome da coluna tanto no Python quanto Jinja
         cursor = conn.cursor()
         
-        # Busca tanto as mesas que ele criou (mestre_id) quanto as que ele participa
         cursor.execute("""
             SELECT DISTINCT m.id, m.nome, m.codigo_convite, m.mestre_id
             FROM mesas m
@@ -67,13 +53,5 @@ class MesaModel:
         mesas_banco = cursor.fetchall()
         conn.close()
         
-        # Monta a lista de dicionários ou objetos que o seu hub.html já espera
-        mesas = []
-        for row in mesas_banco:
-            mesas.append({
-                'id': row[0],
-                'nome': row[1],
-                'codigo_convite': row[2],
-                'mestre_id': row[3]
-            })
-        return mesas
+        # Converte para dicionários puros para evitar incompatibilidades no template hub.html
+        return [dict(row) for row in mesas_banco]

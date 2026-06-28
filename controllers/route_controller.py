@@ -173,32 +173,40 @@ def save_and_process(sheet_type, entity_id=None):
 @bp.route('/delete/<sheet_type>/<int:entity_id>', methods=['POST'])
 @login_required
 def delete_entity(sheet_type, entity_id):
+    if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
+        return "Tipo inválido", 404
+
     existing = CharacterModel.get_entity_by_id(sheet_type, entity_id)
     if not existing:
-        return "Não encontrado", 404
-        
+        flash("Registo não encontrado.", "error")
+        return redirect(url_for('routes.hub'))
+
+    # Coleta o ID do dono convertendo o objeto de forma segura
+    usuario_dono = None
     try:
-        usuario_dono = None
-        if 'usuario_id' in existing.keys():
+        if hasattr(existing, 'keys'):
             usuario_dono = existing['usuario_id']
-        elif 'USUARIO_ID' in existing.keys():
-            usuario_dono = existing['USUARIO_ID']
-            
-        if usuario_dono is None:
-            for chave in existing.keys():
-                if str(chave).upper() == 'USUARIO_ID':
-                    usuario_dono = existing[chave]
-                    break
-
-        if usuario_dono is not None and int(usuario_dono) != int(current_user.id):
-            abort(403)
-            
     except Exception:
-        pass
+        try:
+            usuario_dono = dict(existing).get('usuario_id')
+        except Exception:
+            pass
 
+    # Se não achou em minúsculo, tenta em maiúsculo
+    if usuario_dono is None:
+        try:
+            usuario_dono = existing['USUARIO_ID']
+        except Exception:
+            pass
+
+    # Validação do proprietário
+    if usuario_dono is not None and int(usuario_dono) != int(current_user.id):
+        abort(403)
+
+    # Executa a exclusão definitiva
     CharacterModel.delete_entity(sheet_type, entity_id)
+    flash(f"{sheet_type.capitalize()} excluído com sucesso!", "success")
     return redirect(url_for('routes.hub'))
-
 
 # ─────────────────────────────────────────────────────────
 # ENDPOINTS DA API (CÁLCULOS ASSÍNCRONOS E MODO TESTE)
@@ -385,10 +393,30 @@ def detalhes_mesa(mesa_id):
 def delete_mesa(mesa_id):
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM mesas WHERE id = ? AND mestre_id = ?", (mesa_id, current_user.id))
-    conn.commit()
-    conn.close()
-    flash('Mesa excluída!', 'success')
+    
+    try:
+        # 1. Validar primeiro se a mesa pertence mesmo ao utilizador atual
+        cursor.execute("SELECT mestre_id FROM mesas WHERE id = ?", (mesa_id,))
+        mesa = cursor.fetchone()
+        
+        if not mesa or int(mesa[0]) != int(current_user.id):
+            conn.close()
+            abort(403) # Não é o mestre da mesa
+            
+        # 2. Remover os participantes primeiro para evitar violações de integridade (Foreign Keys)
+        cursor.execute("DELETE FROM participantes WHERE mesa_id = ?", (mesa_id,))
+        
+        # 3. Eliminar a mesa
+        cursor.execute("DELETE FROM mesas WHERE id = ?", (mesa_id,))
+        
+        conn.commit()
+        flash('Mesa excluída permanentemente!', 'success')
+    except Exception as e:
+        conn.rollback()
+        flash(f'Erro ao excluir mesa: {str(e)}', 'error')
+    finally:
+        conn.close()
+        
     return redirect(url_for('routes.hub'))
 
 @bp.route('/mesa/sair/<int:mesa_id>', methods=['POST'])

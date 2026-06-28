@@ -4,11 +4,7 @@
     <h1>💎 {% if entity %}EDITAR RELÍQUIA{% else %}NOVA RELÍQUIA{% endif %}</h1>
     <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
 </div>
-
-<div style="margin-bottom: 15px;">
-    <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
-</div>
-
+    
 <form id="sheetForm" action="{% if entity %}/save_and_process/{{ sheet_type }}/{{ entity.id }}{% else %}/save_and_process/{{ sheet_type }}{% endif %}" method="POST">
     
     <input type="hidden" name="action_type" id="action_type" value="pdf">
@@ -103,8 +99,10 @@
     </div>
 
     <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
         <button type="submit" class="btn" onclick="document.getElementById('action_type').value='pdf'">📄 Gerar PDF da Relíquia</button>
+        <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
+        <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
+
     </div>
 </form>
 

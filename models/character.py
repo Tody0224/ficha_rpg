@@ -126,7 +126,7 @@ class CharacterModel:
             
             if entity_id:
                 cursor.execute("""
-                    UPDATE conjuradores SET nome=?, idade=?, grau=?, school=?, brutalidade=?, astucia=?, sintonizacao=?,
+                    UPDATE conjuradores SET nome=?, idade=?, grau=?, escola=?, brutalidade=?, astucia=?, sintonizacao=?,
                     vitalidade=?, sinto_atrib=?, pericias=?, passiva_escola=?, vida_max=?, conexao_max=?, reliquia=?, historio=?, usuario_id=? WHERE id=?
                 """, (nome, int(d.get('IDADE', 20)), int(d.get('GRAU', 1)), d.get('ESCOLA'),
                       int(d.get('BRUTALIDADE', 1)), int(astucia), int(sintonia),
