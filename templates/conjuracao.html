@@ -46,7 +46,7 @@
             </div>
             <div class="form-group">
                 <label>Ganho de Conexão *</label>
-                <input type="number" name="GANHO_CONEXAO" id="GANHO_CONEXAO" value="{{ entity.ganho_conexao if entity else 0 }}" min="0" required>
+                <input type="number" name="GANHO" id="GANHO" value="{{ entity.ganho_conexao if entity else 0 }}" min="0" required>
             </div>
             <div class="form-group">
                 <label>Gasto de Ação *</label>
@@ -104,10 +104,11 @@
         </div>
     </div>
 
-        <button type="submit" class="btn">📄 Gerar PDF da Conjuração</button>
-        <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn" onclick="submeterFormulario('pdf')">📄 Gerar PDF da Conjuração</button>
+        <button type="button" class="btn btn-secondary" onclick="submeterFormulario('database')">💾 Salvar no Banco de Dados</button>
         <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
-
+    </div>
 </form>
 
 <script>
@@ -115,30 +116,122 @@ function activateTestMode() {
     fetch('/api/test_mode/{{ sheet_type }}')
     .then(r => r.json())
     .then(data => {
-        // Mapeamento polimórfico (v_nome, nome ou NOME)
         document.getElementById('NOME').value = data.v_nome || data.nome || data.NOME || "Sopro Incendiário";
         document.getElementById('MATRIZ').value = data.v_matriz || data.matriz || data.MATRIZ || "INCÊNDIO";
         
         let subMatriz = data.v_sub_matriz || data.sub_matriz || data.SUB_MATRIZ || "";
         document.getElementById('SUB_MATRIZ').value = subMatriz === "NENHUMA" ? "" : subMatriz;
         
-        // Atributos numéricos com fallback numérico para evitar falhas com zero (0)
         document.getElementById('CUSTO').value = data.v_custo !== undefined ? data.v_custo : (data.custo !== undefined ? data.custo : (data.CUSTO || 0));
-        document.getElementById('GANHO_CONEXAO').value = data.v_ganho_conexao !== undefined ? data.v_ganho_conexao : (data.ganho_conexao !== undefined ? data.ganho_conexao : (data.GANHO_CONEXAO || 0));
         
-        // Mapeamento dos selects textuais (Gasto, Alcance, Área)
+        // Corrigido para buscar o novo ID 'GANHO' mapeado corretamente
+        document.getElementById('GANHO').value = data.v_ganho_conexao !== undefined ? data.v_ganho_conexao : (data.ganho_conexao !== undefined ? data.ganho_conexao : (data.GANHO || 0));
+        
         document.getElementById('GASTO_ACAO').value = data.v_gasto_acao || data.gasto_action || data.GASTO_ACAO || "AÇÃO COMPLEXA";
         document.getElementById('ALCANCE').value = data.v_alcance || data.alcance || data.ALCANCE || "CURTO";
         document.getElementById('AREA').value = data.v_area || data.area || data.AREA || "ALVO";
         document.getElementById('DANO').value = data.v_dano || data.dano || data.DANO || "2d6";
         
-        // Tratamento correto das textareas longas
         document.getElementById('EFEITOS').value = data.ta_efeitos || data.efeitos || data.EFEITOS || "Aplica condição Queimando.";
         document.getElementById('DESCRICAO').value = data.ta_descricao || data.descricao || data.DESCRICAO || "Uma onda avassaladora de calor irrompe das mãos do conjurador.";
+        
+        salvarProgressoLocal();
     })
     .catch(err => {
         console.error("Erro ao rodar modo teste de conjuração:", err);
     });
 }
+
+// ─────────────────────────────────────────────────────────
+// CONTROLE DE SUBMISSÃO SEGURO (VERIFICA LOGIN ANTES)
+// ─────────────────────────────────────────────────────────
+function submeterFormulario(tipoAcao) {
+    const formElement = document.getElementById('sheetForm');
+    
+    if (!formElement.checkValidity()) {
+        formElement.reportValidity();
+        return;
+    }
+
+    document.getElementById('action_type').value = tipoAcao;
+
+    if (tipoAcao === 'database') {
+        fetch('/api/active_users')
+            .then(res => {
+                if (res.redirected || res.status === 401) {
+                     soliciarLoginFicha();
+                } else {
+                    formElement.submit();
+                }
+            })
+            .catch(() => {
+                soliciarLoginFicha();
+            });
+    } else {
+        formElement.submit();
+    }
+}
+
+function soliciarLoginFicha() {
+    alert("Sua sessão expirou ou você está no modo visitante! Para salvar no Banco de Dados, você será levado à tela de login. Não se preocupe, seus dados atuais foram guardados como rascunho automaticamente.");
+    window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+}
+
+// ─────────────────────────────────────────────────────────
+// SISTEMA GENÉRICO DE SALVAMENTO AUTOMÁTICO DE RASCUNHOS
+// ─────────────────────────────────────────────────────────
+const storageKey = "rascunho_ficha_" + window.location.pathname;
+const form = document.getElementById('sheetForm');
+
+function salvarProgressoLocal() {
+    const dados = {};
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(el => {
+        if (!el.name || el.type === 'hidden') return;
+        
+        if (el.type === 'checkbox') {
+            if (!dados[el.name]) dados[el.name] = [];
+            if (el.checked) dados[el.name].push(el.value);
+        } else {
+            dados[el.name] = el.value;
+        }
+    });
+    localStorage.setItem(storageKey, JSON.stringify(dados));
+}
+
+function restaurarProgressoLocal() {
+    const salvo = localStorage.getItem(storageKey);
+    if (!salvo) return;
+    
+    try {
+        const dados = JSON.parse(salvo);
+        Object.keys(dados).forEach(key => {
+            const campos = form.querySelectorAll(`[name="${key}"]`);
+            if (campos.length === 0) return;
+            
+            if (campos[0].type === 'checkbox') {
+                campos.forEach(cb => {
+                    cb.checked = dados[key].includes(cb.value);
+                });
+            } else {
+                campos[0].value = dados[key];
+            }
+        });
+    } catch (e) {
+        console.error("Erro ao ler rascunho local:", e);
+    }
+}
+
+form.addEventListener('input', salvarProgressoLocal);
+form.addEventListener('change', salvarProgressoLocal);
+
+form.addEventListener('submit', function() {
+    setTimeout(() => { localStorage.removeItem(storageKey); }, 500);
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    restaurarProgressoLocal();
+});
 </script>
 {% endblock %}

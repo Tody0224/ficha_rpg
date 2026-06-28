@@ -20,12 +20,27 @@
     updateOnlineUsers();
 </script>
 
-<div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+<div class="header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
     <div>
         <h1>✦ FICHAS RPG</h1>
-        <p style="color: var(--muted); margin: 5px 0 0 0;">Usuário: {{ current_user.username }}</p>
+        {% if current_user.is_authenticated %}
+            <p style="color: var(--muted); margin: 5px 0 0 0;">Usuário: {{ current_user.username }}</p>
+        {% else %}
+            <p style="color: var(--muted); margin: 5px 0 0 0;">Modo Visitante (Crie fichas livremente)</p>
+        {% endif %}
     </div>
-    <a href="/logout" style="color: #ff5555; text-decoration: none; font-size: 13px; font-weight: bold; background: rgba(255,85,85,0.1); padding: 8px 15px; border-radius: 6px;">🔑 Desconectar</a>
+    
+    <div>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('auth.logout') }}" class="btn" style="background-color: #dc3545; color: white; text-decoration: none; padding: 8px 15px; border-radius: 4px;">Sair</a>
+        {% else %}
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('auth.login') }}" class="btn" style="background-color: #007bff; color: white; text-decoration: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Entrar</a>
+                
+                <a href="{{ url_for('auth.register') }}" class="btn" style="background-color: #1e293b; color: #cbd5e1; border: 1px solid var(--border); text-decoration: none; padding: 10px 18px; border-radius: 4px; font-weight: bold; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">Registar</a>
+            </div>
+        {% endif %}
+    </div>
 </div>
 
 <div class="card" style="margin-bottom: 30px; border-top: 4px solid #007bff; background: #0f172a; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);">
@@ -50,21 +65,19 @@
                         </small>
                     </div>
                     <div style="display: flex; gap: 8px;">
-                        <a href="{{ url_for('routes.detalhes_mesa', mesa_id=mesa.id) }}" 
+                        <a href="{{ url_for('table.detalhes_mesa', mesa_id=mesa.id) }}" 
                            style="background: #3b82f6; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem;">
                            Acessar
                         </a>
 
                         {% if mesa.mestre_id == current_user.id %}
-                            <form action="{{ url_for('routes.delete_mesa', mesa_id=mesa.id) }}" method="POST" 
-                                  onsubmit="return confirm('Tem certeza que deseja APAGAR a mesa {{ mesa.nome }}? Esta ação é irreversível.');">
-                                <button type="submit" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
-                                    Excluir
+                            <form action="{{ url_for('table.delete_mesa', mesa_id=mesa.id) }}" method="POST" style="margin: 0;">
+                                <button type="submit" style="background: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
+                                    Apagar
                                 </button>
                             </form>
                         {% else %}
-                            <form action="{{ url_for('routes.sair_da_mesa', mesa_id=mesa.id) }}" method="POST" 
-                                  onsubmit="return confirm('Tem certeza que deseja abandonar a mesa {{ mesa.nome }}?');">
+                            <form action="{{ url_for('table.sair_da_mesa', mesa_id=mesa.id) }}" method="POST" style="margin: 0;">
                                 <button type="submit" style="background: #b91c1c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">
                                     Abandonar
                                 </button>
@@ -83,7 +96,7 @@
     <div style="height: 1px; background: #334155; margin-bottom: 25px;"></div>
 
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-        <form action="{{ url_for('routes.criar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
+        <form action="{{ url_for('table.criar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
             <label style="display: block; color: #94a3b8; margin-bottom: 8px; font-size: 0.85rem;">CRIAR NOVA MESA</label>
             <div style="display: flex; gap: 10px;">
                 <input type="text" name="nome_mesa" placeholder="Nome da mesa..." required 
@@ -92,7 +105,7 @@
             </div>
         </form>
 
-        <form action="{{ url_for('routes.entrar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
+        <form action="{{ url_for('table.entrar_mesa') }}" method="POST" style="background: #1e293b; padding: 15px; border-radius: 8px;">
             <label style="display: block; color: #94a3b8; margin-bottom: 8px; font-size: 0.85rem;">ENTRAR POR CÓDIGO</label>
             <div style="display: flex; gap: 10px;">
                 <input type="text" name="codigo_mesa" placeholder="Código do mestre..." required 
@@ -104,7 +117,10 @@
 </div>
 
 <div class="card" style="margin-top: 30px; border-top: 3px solid #007bff;">
-    <h3>CONJURADORES</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0;">CONJURADORES</h3>
+        <a href="/create/conjurador" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+    </div>
     {% if conjuradores %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
             <thead>
@@ -127,7 +143,7 @@
                     <td style="padding: 8px;">Grau {{ conj.grau or conj.GRAU or conj[2] }}</td>
                     <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
                         <a href="/edit/conjurador/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('routes.delete_entity', sheet_type='conjurador', entity_id=conj.id or conj.ID or conj[0]) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar este conjurador?');">
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='conjurador', entity_id=conj.id or conj.ID or conj[0]) }}" method="POST" style="margin: 0;">
                             <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
                         </form>
                     </td>
@@ -136,12 +152,15 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhum conjurador cadastrado localmente ainda.</p>
+        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhum conjurador cadastrado localmente ainda.</p>
     {% endif %}
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid var(--accent2);">
-    <h3>CONJURAÇÕES</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0;">CONJURAÇÕES</h3>
+        <a href="/create/conjuracao" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+    </div>
     {% if conjuracoes %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
             <thead>
@@ -164,21 +183,24 @@
                     <td style="padding: 8px;">{{ conj.custo or conj.CUSTO or conj[4] }} Conexão</td>
                     <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
                         <a href="/edit/conjuracao/{{ conj.id or conj.ID or conj[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form ="{{ url_for('routes.delete_entity', sheet_type='conjuracao', entity_id=conj.id or conj.ID or conj[0]) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar esta conjuração?');">
-                            <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='conjuracao', entity_id=conj[0]) }}" method="POST" style="display:inline;">
+                            <button type="submit" class="btn" style="background-color: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">Apagar</button>
                         </form>
-                    </td>
+                    </td>   
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhuma conjuração cadastrada localmente ainda.</p>
+        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhuma conjuração cadastrada localmente ainda.</p>
     {% endif %}
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid #28a745;">
-    <h3>FAMILIARES</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0;">FAMILIARES</h3>
+        <a href="/create/familiar" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+    </div>
     {% if familiares %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
             <thead>
@@ -193,11 +215,11 @@
                 {% for familiar in familiares %}
                 <tr style="border-bottom: 1px solid var(--border);">
                     <td style="padding: 8px; font-weight: bold;"> {{ familiar.nome or familiar.NOME or familiar[1] }}</td>
-                    <td style="padding: 8px;"action><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ familiar.especie or familiar.ESPECIE or familiar[2] }}</span></td>
+                    <td style="padding: 8px;"><span style="background: var(--panel); padding: 3px 8px; border-radius: 4px;">{{ familiar.especie or familiar.ESPECIE or familiar[2] }}</span></td>
                     <td style="padding: 8px;">Nível {{ familiar.ameaca or familiar.AMEACA or familiar[3] }}</td>
                     <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
                         <a href="/edit/familiar/{{ familiar.id or familiar.ID or familiar[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('routes.delete_entity', sheet_type='familiar', entity_id=familiar.id or familiar.ID or familiar[0]) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar este familiar?');">
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='familiar', entity_id=familiar.id or familiar.ID or familiar[0]) }}" method="POST" style="margin: 0;">
                             <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
                         </form>
                     </td>
@@ -206,12 +228,15 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhum familiar cadastrado localmente ainda.</p>
+        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhum familiar cadastrado localmente ainda.</p>
     {% endif %}
 </div>
 
 <div class="card" style="margin-top: 20px; border-top: 3px solid #ffc107;">
-    <h3>RELÍQUIAS</h3>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+        <h3 style="margin: 0;">RELÍQUIAS</h3>
+        <a href="/create/reliquia" class="btn" style="background-color: #10b981; color: white; text-decoration: none; padding: 6px 14px; border-radius: 4px; font-size: 13px; font-weight: bold;">Criar +</a>
+    </div>
     {% if reliquias %}
         <table style="width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed;">
             <thead>
@@ -230,7 +255,7 @@
                     <td style="padding: 8px;">{{ reliquia.matriz or reliquia.MATRIZ or reliquia[3] }}</td>
                     <td style="padding: 8px; text-align: right; display: flex; justify-content: flex-end; gap: 5px;">
                         <a href="/edit/reliquia/{{ reliquia.id or reliquia.ID or reliquia[0] }}" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; text-decoration: none; margin: 0;">Editar</a>
-                        <form action="{{ url_for('routes.delete_entity', sheet_type='reliquia', entity_id=reliquia.id or reliquia.ID or reliquia[0]) }}" method="POST" style="margin: 0;" onsubmit="return confirm('Tens a certeza que desejas apagar esta relíquia?');">
+                        <form action="{{ url_for('sheet.delete_entity', sheet_type='reliquia', entity_id=reliquia.id or reliquia.ID or reliquia[0]) }}" method="POST" style="margin: 0;">
                             <button type="submit" class="btn" style="padding: 4px 10px; font-size: 12px; margin: 0; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Apagar</button>
                         </form>
                     </td>
@@ -239,31 +264,8 @@
             </tbody>
         </table>
     {% else %}
-        <p style="color: var(--muted); font-size: 13px; font-style: italic;">Nenhuma relíquia cadastrada localmente ainda.</p>
+        <p style="color: var(--muted); font-size: 13px; font-style: italic; margin-top: 10px;">Nenhuma relíquia cadastrada localmente ainda.</p>
     {% endif %}
-</div>
-
-<div class="grid-3" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 30px;">
-    <div class="card">
-        <h3>CRIAR CONJURADOR</h3>
-        <p style="color: var(--muted); font-size: 13px;">Personagem jogável com escola, atributos e perícias</p>
-        <a href="/create/conjurador" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
-    </div>
-    <div class="card">
-        <h3>CRIAR CONJURAÇÃO</h3>
-        <p style="color: var(--muted); font-size: 13px;">Habilidade sobrenatural vinculada a uma matriz</p>
-        <a href="/create/conjuracao" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
-    </div>
-    <div class="card">
-        <h3>CRIAR FAMILIAR</h3>
-        <p style="color: var(--muted); font-size: 13px;">Criatura sobrenatural vinculada à relíquia</p>
-        <a href="/create/familiar" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
-    </div>
-    <div class="card">
-        <h3>CRIAR RELÍQUIA</h3>
-        <p style="color: var(--muted); font-size: 13px;">Artefato mágico com núcleo e familiar vinculado</p>
-        <a href="/create/reliquia" class="btn" style="display: inline-block; text-decoration: none;">Criar →</a>
-    </div>
 </div>
 
 <script>

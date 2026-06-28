@@ -98,11 +98,10 @@
         </div>
     </div>
 
-    <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn" onclick="document.getElementById('action_type').value='pdf'">📄 Gerar PDF da Relíquia</button>
-        <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn" onclick="submeterFormulario('pdf')">📄 Gerar PDF da Relíquia</button>
+        <button type="button" class="btn btn-secondary" onclick="submeterFormulario('database')">💾 Salvar no Banco de Dados</button>
         <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
-
     </div>
 </form>
 
@@ -111,19 +110,113 @@ function activateTestMode() {
     fetch('/api/test_mode/{{ sheet_type }}')
     .then(r => r.json())
     .then(data => {
-        document.getElementById('NOME').value = data.NOME || data.v_nome || "";
-        document.getElementById('NIVEL').value = data.NIVEL || data.v_nivel || "";
-        document.getElementById('NUCLEO').value = data.NUCLEO || data.v_nucleo || "";
-        document.getElementById('MATRIZ').value = data.MATRIZ || data.v_matriz || "";
-        document.getElementById('SUB_MATRIZ').value = data.SUB_MATRIZ || data.v_sub || "NENHUMA";
-        document.getElementById('ALCANCE').value = data.ALCANCE || data.v_alcance || "";
-        document.getElementById('DANO').value = data.DANO || data.v_dano || "—";
-        document.getElementById('FAMILIAR').value = data.FAMILIAR || data.v_familiar || "";
+        document.getElementById('NOME').value = data.NOME || data.nome || data.v_nome || "";
+        document.getElementById('NIVEL').value = data.NIVEL || data.nivel || data.v_nivel || "";
+        document.getElementById('NUCLEO').value = data.NUCLEO || data.nucleo || data.v_nucleo || "";
+        document.getElementById('MATRIZ').value = data.MATRIZ || data.matriz || data.v_matriz || "";
+        document.getElementById('SUB_MATRIZ').value = data.SUB_MATRIZ || data.sub_matriz || data.v_sub || "NENHUMA";
+        document.getElementById('ALCANCE').value = data.ALCANCE || data.alcance || data.v_alcance || "";
+        document.getElementById('DANO').value = data.DANO || data.dano || data.v_dano || "—";
+        document.getElementById('FAMILIAR').value = data.FAMILIAR || data.familiar || data.v_familiar || "";
         
-        document.getElementById('CONJURACOES').value = data.CONJURACOES || data.ta_conjuracoes || "Nenhuma conjuração inserida.";
-        document.getElementById('DESCRICAO').value = data.DESCRICAO || data.ta_desc || "Descrição gerada automaticamente em modo teste.";
+        document.getElementById('CONJURACOES').value = data.CONJURACOES || data.conjuracoes || data.ta_conjuracoes || "Nenhuma conjuração inserida.";
+        document.getElementById('DESCRICAO').value = data.DESCRICAO || data.descricao || data.ta_desc || "Descrição gerada automaticamente em modo teste.";
+        
+        salvarProgressoLocal();
     })
     .catch(err => console.error("Erro ao rodar modo teste de relíquia:", err));
 }
+
+// ─────────────────────────────────────────────────────────
+// CONTROLE DE SUBMISSÃO SEGURO (VERIFICA LOGIN ANTES)
+// ─────────────────────────────────────────────────────────
+function submeterFormulario(tipoAcao) {
+    const formElement = document.getElementById('sheetForm');
+    
+    if (!formElement.checkValidity()) {
+        formElement.reportValidity();
+        return;
+    }
+
+    document.getElementById('action_type').value = tipoAcao;
+
+    if (tipoAcao === 'database') {
+        fetch('/api/active_users')
+            .then(res => {
+                if (res.redirected || res.status === 401) {
+                     soliciarLoginFicha();
+                } else {
+                    formElement.submit();
+                }
+            })
+            .catch(() => {
+                soliciarLoginFicha();
+            });
+    } else {
+        formElement.submit();
+    }
+}
+
+function soliciarLoginFicha() {
+    alert("Sua sessão expirou ou você está no modo visitante! Para salvar no Banco de Dados, você será levado à tela de login. Não se preocupe, seus dados atuais foram guardados como rascunho automaticamente.");
+    window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+}
+
+// ─────────────────────────────────────────────────────────
+// SISTEMA GENÉRICO DE SALVAMENTO AUTOMÁTICO DE RASCUNHOS
+// ─────────────────────────────────────────────────────────
+const storageKey = "rascunho_ficha_" + window.location.pathname;
+const form = document.getElementById('sheetForm');
+
+function salvarProgressoLocal() {
+    const dados = {};
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(el => {
+        if (!el.name || el.type === 'hidden') return;
+        
+        if (el.type === 'checkbox') {
+            if (!dados[el.name]) dados[el.name] = [];
+            if (el.checked) dados[el.name].push(el.value);
+        } else {
+            dados[el.name] = el.value;
+        }
+    });
+    localStorage.setItem(storageKey, JSON.stringify(dados));
+}
+
+function restaurarProgressoLocal() {
+    const salvo = localStorage.getItem(storageKey);
+    if (!salvo) return;
+    
+    try {
+        const dados = JSON.parse(salvo);
+        Object.keys(dados).forEach(key => {
+            const campos = form.querySelectorAll(`[name="${key}"]`);
+            if (campos.length === 0) return;
+            
+            if (campos[0].type === 'checkbox') {
+                campos.forEach(cb => {
+                    cb.checked = dados[key].includes(cb.value);
+                });
+            } else {
+                campos[0].value = dados[key];
+            }
+        });
+    } catch (e) {
+        console.error("Erro ao ler rascunho local:", e);
+    }
+}
+
+form.addEventListener('input', salvarProgressoLocal);
+form.addEventListener('change', salvarProgressoLocal);
+
+form.addEventListener('submit', function() {
+    setTimeout(() => { localStorage.removeItem(storageKey); }, 500);
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    restaurarProgressoLocal();
+});
 </script>
 {% endblock %}

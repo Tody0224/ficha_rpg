@@ -3,11 +3,14 @@ from flask_login import LoginManager, current_user
 from werkzeug.middleware.proxy_fix import ProxyFix
 from models.user import Usuario
 from models.character import CharacterModel
-from controllers.route_controller import bp
 from datetime import datetime
 import sqlite3
 import os
-from werkzeug.middleware.proxy_fix import ProxyFix
+
+from controllers.auth_controller import auth_bp
+from controllers.main_controller import main_bp
+from controllers.sheet_controller import sheet_bp
+from controllers.table_controller import table_bp
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
@@ -34,18 +37,25 @@ def add_header(response):
     response.headers["Expires"] = "0"
     return response
 
-# Inicializações
+# Inicializações do Banco de Dados
 Usuario.init_db()
 CharacterModel.init_db()
 
+# Configuração do Gerenciador de Login
 login_manager = LoginManager()
-login_manager.login_view = 'routes.login'
+# AJUSTE: Alterado de 'routes.login' para 'auth.login' refletindo a nova divisão
+login_manager.login_view = 'auth.login'
 login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
     return Usuario.get_by_id(int(user_id))
 
-app.register_blueprint(bp, url_prefix='/')
+# REGISTRO DOS BLUEPRINTS MODULARES
+app.register_blueprint(auth_bp, url_prefix='/')
+app.register_blueprint(main_bp, url_prefix='/')
+app.register_blueprint(sheet_bp, url_prefix='/')
+app.register_blueprint(table_bp, url_prefix='/')
+
 if __name__ == '__main__':
     app.run(debug=True)

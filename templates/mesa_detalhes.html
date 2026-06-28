@@ -23,12 +23,12 @@
             </div>
             
             <div style="display: flex; gap: 10px;">
-                <a href="{{ url_for('routes.hub') }}" style="background: #64748b; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block;">
+                <a href="{{ url_for('main.hub') }}" style="background: #64748b; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block;">
                     Voltar para o Menu
                 </a>
 
                 {% if e_mestre %}
-                    <form action="{{ url_for('routes.delete_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Apagar a mesa {{ mesa_nome }} definitivamente? Esta ação é irreversível.');">
+                    <form action="{{ url_for('table .delete_mesa', mesa_id=mesa_id) }}" method="POST" onsubmit="return confirm('Apagar a mesa {{ mesa_nome }} definitivamente? Esta ação é irreversível.');">
                         <button type="submit" style="background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem;">Excluir Mesa</button>
                     </form>
                 {% else %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="header">
-    <h1>🧙‍♂️ {% if entity %}EDITAR CONJURADOR{% else %}NOVO CONJURADOR{% endif %}</h1>
+    <h1>🧙‍♂️ {% if entity %}EDITAR CONJURADOR{% else %}NOVA FICHA DE CONJURADOR{% endif %}</h1>
     <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
 </div>
 
@@ -75,9 +75,9 @@
         <div class="form-group"><label>Nome da Relíquia Vinculada</label><input type="text" name="RELIQUIA" id="RELIQUIA" value="{{ entity.reliquia if entity else (entity.RELIQUIA if entity else '') }}"></div>
     </div>
 
-    <div style="display: flex; gap: 10px;">
-        <button type="submit" class="btn">📄 Gerar PDF da Conjurador</button>
-        <button type="submit" class="btn btn-secondary" onclick="document.getElementById('action_type').value='database'">💾 Salvar no Banco de Dados</button>
+    <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button type="button" class="btn" onclick="submeterFormulario('pdf')">📄 Gerar PDF do Conjurador</button>
+        <button type="button" class="btn btn-secondary" onclick="submeterFormulario('database')">💾 Salvar no Banco de Dados</button>
         <button type="button" class="btn btn-secondary" onclick="activateTestMode()">🎲 Modo Teste (Preencher Aleatório)</button>
     </div>
 </form>
@@ -118,7 +118,7 @@ function validatePericiasLimit(element) {
 function calculateResources() {
     const grauInput = document.getElementById('GRAU');
     const vitInput = document.getElementById('VITALIDADE');
-    const sintInput = document.getElementById('SINTONIA'); // Captura via ID "SINTONIA"
+    const sintInput = document.getElementById('SINTONIA');
 
     if (!grauInput || !vitInput || !sintInput) return;
 
@@ -158,13 +158,11 @@ function activateTestMode() {
         keys.forEach(k => {
             const el = document.getElementById(k);
             if (el) {
-                // Mapeamento compatível para capturar do mock data
                 let valor = attrs[k];
                 if (valor === undefined && k === 'SINTONIA') {
                     valor = attrs['SINTONIA_ATRIB'] !== undefined ? attrs['SINTONIA_ATRIB'] : attrs['sintonia'];
                 }
                 if (valor === undefined) valor = attrs[k.toLowerCase()];
-                
                 el.value = valor !== undefined ? valor : 1;
             }
         });
@@ -192,11 +190,107 @@ function activateTestMode() {
         
         calculateResources();
         updatePericiasCount();
+        
+        salvarProgressoLocal();
     })
     .catch(err => console.error("Erro ao rodar modo teste de conjurador:", err));
 }
 
+// ─────────────────────────────────────────────────────────
+// CONTROLE DE SUBMISSÃO SEGURO (VERIFICA LOGIN ANTES)
+// ─────────────────────────────────────────────────────────
+function submeterFormulario(tipoAcao) {
+    const formElement = document.getElementById('sheetForm');
+    
+    if (!formElement.checkValidity()) {
+        formElement.reportValidity();
+        return;
+    }
+
+    document.getElementById('action_type').value = tipoAcao;
+
+    if (tipoAcao === 'database') {
+        fetch('/api/active_users')
+            .then(res => {
+                if (res.redirected || res.status === 401) {
+                     soliciarLoginFicha();
+                } else {
+                    formElement.submit();
+                }
+            })
+            .catch(() => {
+                soliciarLoginFicha();
+            });
+    } else {
+        formElement.submit();
+    }
+}
+
+function soliciarLoginFicha() {
+    alert("Sua sessão expirou ou você está no modo visitante! Para salvar no Banco de Dados, você será levado à tela de login. Não se preocupe, seus dados atuais foram guardados como rascunho automaticamente.");
+    window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
+}
+
+// ─────────────────────────────────────────────────────────
+// SISTEMA GENÉRICO DE SALVAMENTO AUTOMÁTICO DE RASCUNHOS
+// ─────────────────────────────────────────────────────────
+const storageKey = "rascunho_ficha_" + window.location.pathname;
+const form = document.getElementById('sheetForm');
+
+function salvarProgressoLocal() {
+    const dados = {};
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(el => {
+        if (!el.name || el.type === 'hidden') return;
+        
+        if (el.type === 'checkbox') {
+            if (!dados[el.name]) dados[el.name] = [];
+            if (el.checked) dados[el.name].push(el.value);
+        } else {
+            dados[el.name] = el.value;
+        }
+    });
+    localStorage.setItem(storageKey, JSON.stringify(dados));
+}
+
+function restaurarProgressoLocal() {
+    const salvo = localStorage.getItem(storageKey);
+    if (!salvo) return;
+    
+    try {
+        const dados = JSON.parse(salvo);
+        Object.keys(dados).forEach(key => {
+            const campos = form.querySelectorAll(`[name="${key}"]`);
+            if (campos.length === 0) return;
+            
+            if (campos[0].type === 'checkbox') {
+                campos.forEach(cb => {
+                    cb.checked = dados[key].includes(cb.value);
+                });
+            } else {
+                campos[0].value = dados[key];
+                if (key === 'ESCOLA') {
+                    const hidden = document.getElementById('escola_hidden');
+                    if (hidden) hidden.value = dados[key];
+                }
+            }
+        });
+    } catch (e) {
+        console.error("Erro ao ler rascunho local:", e);
+    }
+}
+
+form.addEventListener('input', salvarProgressoLocal);
+form.addEventListener('change', salvarProgressoLocal);
+
+form.addEventListener('submit', function() {
+    setTimeout(() => { localStorage.removeItem(storageKey); }, 500);
+});
+
 document.addEventListener("DOMContentLoaded", function() {
+    restaurarProgressoLocal();
+    
     setTimeout(() => {
         calculateResources();
         updatePericiasCount();
