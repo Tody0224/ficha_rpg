@@ -1,3 +1,4 @@
+# models/mesa.py
 import sqlite3
 import random
 
@@ -40,7 +41,7 @@ class MesaModel:
     @staticmethod
     def get_mesas_por_usuario(usuario_id):
         conn = sqlite3.connect('database.db')
-        conn.row_factory = sqlite3.Row  # Garante que acessamos por nome da coluna tanto no Python quanto Jinja
+        conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
         cursor.execute("""
@@ -53,5 +54,5 @@ class MesaModel:
         mesas_banco = cursor.fetchall()
         conn.close()
         
-        # Converte para dicionários puros para evitar incompatibilidades no template hub.html
+
         return [dict(row) for row in mesas_banco]

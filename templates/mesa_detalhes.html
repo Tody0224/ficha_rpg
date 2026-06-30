@@ -2,7 +2,7 @@
 {% block content %}
 <div class="mesa-page">
     
-    <div class="card mesa-card">
+    <div class="card mesa-card fade-in">
         <div class="mesa-card-header">
             <div>
                 <div class="mesa-title-row">
@@ -39,10 +39,10 @@
         </div>
     </div>
 
-    <h3 class="membros-title">Membros da Mesa</h3>
+    <h3 class="membros-title fade-in">Membros da Mesa</h3>
     
     {% for j in jogadores %}
-        <div class="card jogador-card{% if j.is_master %} is-master{% endif %}" data-username="{{ j.username }}">
+        <div class="card jogador-card{% if j.is_master %} is-master{% endif %} {{ loop.cycle('fade-in', 'fade-alt') }}" data-username="{{ j.username }}">
             <div class="jogador-card-header">
                 <div class="jogador-name-row">
                     <h3>👤 {{ j.username }}</h3>
@@ -59,7 +59,7 @@
             {% if j.fichas %}
                 <ul class="fichas-list">
                     {% for ficha in j.fichas %}
-                        <li class="ficha-item">
+                        <li class="ficha-item {{ loop.cycle('fade-in', 'fade-alt') }}">
                             <span>✨ <strong>{{ ficha.NOME }}</strong> <small class="ficha-tipo">({{ ficha.tipo }})</small></span>
                             <a href="{{ url_for('sheet.edit_entity', sheet_type=ficha.tipo, entity_id=ficha.id) }}" 
                                class="ver-ficha-link">Ver Ficha →</a>
@@ -71,7 +71,7 @@
             {% endif %}
         </div>
     {% else %}
-        <div class="empty-mesa-box">
+        <div class="empty-mesa-box fade-in">
             <p>Nenhum jogador cadastrado nesta mesa.</p>
         </div>
     {% endfor %}
@@ -80,16 +80,15 @@
 <script>
 
 function copiarCodigo() {
-    // Busca apenas o texto dentro do span com ID 'valorCodigo'
+
     const codigo = document.getElementById('valorCodigo').innerText;
     
-    // API moderna de copiar para a área de transferência
+
     navigator.clipboard.writeText(codigo).then(() => {
         const btn = document.getElementById('btnCopiar');
         const originalText = btn.innerText;
         
-        // Feedback visual de sucesso
-        btn.innerText = "✅ Copiado!";
+        btn.innerText = "Copiado!";
         btn.style.background = "#10b981";
         btn.style.color = "#fff";
         
@@ -113,10 +112,10 @@ function checkOnlinePlayers() {
                 const badge = card.querySelector('.status-badge');
                 
                 if (usuariosOnline.includes(username)) {
-                    badge.innerText = "🟢 Online";
+                    badge.innerText = "Online";
                     badge.style.color = "#10b981";
                 } else {
-                    badge.innerText = "⚫ Offline";
+                    badge.innerText = "Offline";
                     badge.style.color = "#64748b";
                 }
             });

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">
+<div class="header fade-in">
     <h1>{% if entity %}EDITAR CONJURADOR{% else %}FICHA DE CONJURADOR{% endif %}</h1>
     <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
@@ -9,7 +9,7 @@
     
     <input type="hidden" name="action_type" id="action_type" value="pdf">
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>IDENTIFICAÇÃO</h3>
         <div class="form-group">
             <label>Nome *</label>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>DISTRIBUIÇÃO DE ATRIBUTOS</h3>
         <div class="grid-3">
             <div class="form-group"><label>Brutalidade</label><input type="number" class="attr-input" name="BRUTALIDADE" id="BRUTALIDADE" value="{{ entity.brutalidade if entity else (entity.BRUTALIDADE if entity else '1') }}" min="0" max="3"></div>
@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>PERÍCIAS DISPONÍVEIS <span id="periciasCount" class="pericias-count"></span></h3>
         <div class="checkbox-group">
             {% for p in constants.PERICIAS_DISP %}
@@ -71,7 +71,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>EXTRAS</h3>
         <div class="form-group"><label>Background / Histórico</label><textarea name="BACKGROUND" id="BACKGROUND" rows="3">{{ entity.historio if entity else (entity.BACKGROUND if entity else '') }}</textarea></div>
         <div class="form-group"><label>Inventário Inicial</label><textarea name="INVENTARIO" id="INVENTARIO" rows="2">{{ entity.inventario if entity else (entity.INVENTARIO if entity else '') }}</textarea></div>
@@ -199,24 +199,20 @@ function activateTestMode() {
     .catch(err => console.error("Erro ao rodar modo teste de conjurador:", err));
 }
 
-// ─────────────────────────────────────────────────────────
-// CONTROLE DE SUBMISSÃO SEGURO (VERIFICA LOGIN ANTES)
-// ─────────────────────────────────────────────────────────
+
 function submeterFormulario(tipoAcao) {
     const formElement = document.getElementById('sheetForm');
     
-    // Configura o tipo de ação no input hidden
+
     document.getElementById('action_type').value = tipoAcao;
 
     if (tipoAcao === 'database') {
-        // Para salvar no banco, a validação de campos obrigatórios é EXIGIDA
         formElement.removeAttribute('novalidate');
         if (!formElement.checkValidity()) {
             formElement.reportValidity();
             return;
         }
 
-        // Verifica a sessão antes de enviar para o banco de dados
         fetch('/api/active_users')
             .then(res => {
                 if (res.redirected || res.status === 401) {
@@ -229,7 +225,6 @@ function submeterFormulario(tipoAcao) {
                 soliciarLoginFicha();
             });
     } else {
-        // Se for PDF, ignora os avisos de campos obrigatórios vazios do navegador e gera direto
         formElement.setAttribute('novalidate', 'true');
         formElement.submit();
     }
@@ -240,9 +235,6 @@ function soliciarLoginFicha() {
     window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
 }
 
-// ─────────────────────────────────────────────────────────
-// SISTEMA GENÉRICO DE SALVAMENTO AUTOMÁTICO DE RASCUNHOS
-// ─────────────────────────────────────────────────────────
 const storageKey = "rascunho_ficha_" + window.location.pathname;
 const form = document.getElementById('sheetForm');
 

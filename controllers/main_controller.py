@@ -11,12 +11,10 @@ main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/')
 def index():
-    # Quando o site abre, cai direto no Hub público!
     return redirect(url_for('main.hub'))
 
 @main_bp.route('/hub')
 def hub():
-    # Se estiver logado, puxa os dados do usuário corrente
     if current_user.is_authenticated:
         conjuradores = CharacterModel.get_all_by_type('conjurador', current_user.id)
         conjuracoes = CharacterModel.get_all_by_type('conjuracao', current_user.id)
@@ -24,7 +22,6 @@ def hub():
         reliquias = CharacterModel.get_all_by_type('reliquia', current_user.id)
         minhas_mesas = MesaModel.get_mesas_por_usuario(current_user.id)
     else:
-        # Se NÃO estiver logado, o hub abre limpo/vazio (sem dar erro)
         conjuradores = []
         conjuracoes = []
         familiares = []
@@ -40,7 +37,6 @@ def hub():
 
 @main_bp.route('/api/calculate_resources', methods=['POST'])
 def api_resources():
-    # Rota pública: Permite calcular vida/conexão no formulário sem precisar de login
     data = request.json or {}
     try:
         grau = int(data.get('grau', 1))
@@ -53,7 +49,6 @@ def api_resources():
 
 @main_bp.route('/api/test_mode/<sheet_type>')
 def api_test_mode(sheet_type):
-    # Rota pública: Modo Teste gerando dados aleatórios liberado sem login
     if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
         return jsonify({"error": "Tipo inválido"}), 400
         

@@ -66,16 +66,12 @@ class CharacterModel:
 
     @staticmethod
     def get_all_by_user(usuario_id):
-        # Combina as buscas de todos os tipos de ficha
         tipos = ['conjurador', 'conjuracao', 'familiar', 'reliquia']
         todas = []
         for tipo in tipos:
             todas.extend(CharacterModel.get_all_by_type(tipo, usuario_id))
         return todas
 
-    # ─────────────────────────────────────────────────────────
-    # REGRA DE NEGÓCIO: CÁLCULO DE RECURSOS
-    # ─────────────────────────────────────────────────────────
     @staticmethod
     def calculate_resources(grau, vitalidade, sintonia):
         """Calcula os pontos máximos de Vida e Conexão baseados nos atributos."""
@@ -83,21 +79,16 @@ class CharacterModel:
         conexao = 10 + (sintonia * 4) + (grau * 3)
         return {"vida": vida, "conexao": conexao}
 
-    # ─────────────────────────────────────────────────────────
-    # SALVAR / ATUALIZAR (UPSERT) - CORRIGIDO
-    # ─────────────────────────────────────────────────────────
     @staticmethod
     def save_entity(sheet_type, data, entity_id=None):
         conn = sqlite3.connect(DB_PATH)
         cursor = conn.cursor()
         
-        # Cria um dicionário normalizado onde todas as chaves são MAIÚSCULAS e SEM ACENTO
         d = {}
         for k, v in data.items():
             key_clean = str(k).upper().replace('Ú', 'U').replace('Ç', 'C').replace('Ã', 'A')
             d[key_clean] = v
             
-        # CORREÇÃO: Busca o usuario_id tanto na chave minúscula quanto na maiúscula higienizada
         usuario_id = data.get('usuario_id') or d.get('USUARIO_ID') or 1
         
         if sheet_type == "conjuracao":
@@ -177,12 +168,7 @@ class CharacterModel:
         conn.close()
         return new_id
 
-    # ─────────────────────────────────────────────────────────
-    # LEITURA E REMOÇÃO POLIMÓRFICA FILTRADA POR USUÁRIO
-    # ─────────────────────────────────────────────────────────
-    @staticmethod
-    @staticmethod
-    @staticmethod
+
     @staticmethod
     def get_all_by_type(sheet_type, usuario_id):
         tabelas = {
@@ -195,7 +181,6 @@ class CharacterModel:
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
         
-        # Seleciona as colunas exatas necessárias para a listagem de cada tipo no Hub
         if sheet_type == "conjurador":
             query = f"SELECT id, nome, escola FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
             
@@ -206,7 +191,6 @@ class CharacterModel:
             query = f"SELECT id, nome, sub_matriz FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
             
         elif sheet_type == "reliquia":
-            # CORREÇÃO: Busca explicitamente o nivel e a matriz para preencher a tabela das relíquias
             query = f"SELECT id, nome, nivel, matriz FROM {tabelas[sheet_type]} WHERE usuario_id = ? ORDER BY id DESC"
             
         else:
@@ -237,9 +221,6 @@ class CharacterModel:
         conn.commit()
         conn.close()
 
-    # ─────────────────────────────────────────────────────────
-    # GERADOR DE DADOS PARA MODO TESTE (SEM CONFLITO DE CHAVES)
-    # ─────────────────────────────────────────────────────────
     @staticmethod
     def get_test_data(sheet_type):
         if sheet_type == "conjuracao":
@@ -261,7 +242,6 @@ class CharacterModel:
             }
             
         if sheet_type == "conjurador":
-            # Chaves sem acento para evitar incompatibilidade com o JS/HTML
             attrs = {
                 "BRUTALIDADE": 1,
                 "RAPIDEZ": 1,

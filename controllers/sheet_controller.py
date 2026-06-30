@@ -9,7 +9,6 @@ pdf_generator = PDFGeneratorModel()
 
 @sheet_bp.route('/create/<sheet_type>')
 def create_form(sheet_type):
-    # Rota pública: Qualquer um pode acessar o formulário de criação
     if sheet_type not in ['conjurador', 'conjuracao', 'familiar', 'reliquia']:
         return "Not Found", 404
     return render_template(f'{sheet_type}.html', constants=constants, sheet_type=sheet_type, entity=None)
@@ -37,7 +36,6 @@ def save_and_process(sheet_type, entity_id=None):
 
     action_type = request.form.get('action_type', 'pdf')
     
-    # SE O USUÁRIO QUER SALVAR NO BANCO: Exige login manualmente aqui
     if action_type == "database":
         if not current_user.is_authenticated:
             flash('Você precisa estar logado para salvar fichas no sistema.', 'error')
@@ -79,7 +77,6 @@ def save_and_process(sheet_type, entity_id=None):
         CharacterModel.save_entity(sheet_type, form_data, entity_id=entity_id)
         return redirect(url_for('main.hub'))
 
-    # Se a ação for apenas gerar PDF, funciona de forma 100% anônima e sem login!
     pdf_buffer = pdf_generator.build_pdf(sheet_type, form_data)
     filename = f"Ficha_{form_data.get('NOME', 'Ficha').replace(' ', '_')}.pdf"
     return send_file(pdf_buffer, mimetype='application/pdf', as_attachment=True, download_name=filename)

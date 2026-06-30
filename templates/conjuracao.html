@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">
+<div class="header fade-in">
     <h1>🔮 {% if entity %}EDITAR CONJURAÇÃO{% else %}NOVA CONJURAÇÃO{% endif %}</h1>
     <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
@@ -9,7 +9,7 @@
     
     <input type="hidden" name="action_type" id="action_type" value="pdf">
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>REGISTRO MÍSTICO</h3>
         <div class="form-group">
             <label>Nome da Conjuração *</label>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>CUSTOS E ECONOMIA DE AÇÃO</h3>
         <div class="grid-3">
             <div class="form-group">
@@ -60,7 +60,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>PROPRIEDADES DE APLICAÇÃO</h3>
         <div class="grid-3">
             <div class="form-group">
@@ -88,7 +88,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>EFEITOS MECÂNICOS</h3>
         <div class="form-group">
             <label>Lista de Efeitos (Condições, Manobras ou Efeitos Personalizados)</label>
@@ -96,7 +96,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>DESCRIÇÃO NARRATIVA</h3>
         <div class="form-group">
             <label>Descrição Visual e Atmosférica *</label>
@@ -124,7 +124,7 @@ function activateTestMode() {
         
         document.getElementById('CUSTO').value = data.v_custo !== undefined ? data.v_custo : (data.custo !== undefined ? data.custo : (data.CUSTO || 0));
         
-        // Corrigido para buscar o novo ID 'GANHO' mapeado corretamente
+
         document.getElementById('GANHO').value = data.v_ganho_conexao !== undefined ? data.v_ganho_conexao : (data.ganho_conexao !== undefined ? data.ganho_conexao : (data.GANHO || 0));
         
         document.getElementById('GASTO_ACAO').value = data.v_gasto_acao || data.gasto_action || data.GASTO_ACAO || "AÇÃO COMPLEXA";
@@ -142,9 +142,7 @@ function activateTestMode() {
     });
 }
 
-// ─────────────────────────────────────────────────────────
-// CONTROLE DE SUBMISSÃO SEGURO (VERIFICA LOGIN ANTES)
-// ─────────────────────────────────────────────────────────
+
 function submeterFormulario(tipoAcao) {
     const formElement = document.getElementById('sheetForm');
     
@@ -177,9 +175,7 @@ function soliciarLoginFicha() {
     window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
 }
 
-// ─────────────────────────────────────────────────────────
-// SISTEMA GENÉRICO DE SALVAMENTO AUTOMÁTICO DE RASCUNHOS
-// ─────────────────────────────────────────────────────────
+
 const storageKey = "rascunho_ficha_" + window.location.pathname;
 const form = document.getElementById('sheetForm');
 

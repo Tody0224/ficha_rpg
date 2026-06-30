@@ -1,20 +1,20 @@
 {% extends 'base.html' %}
 {% block content %}
 
-<div class="hub-header">
+<div class="hub-header fade-in">
     <div class="user-info">
         <h1>Menu Inicial</h1>
     </div>
 </div>
 
-<div class="card mesa-card-container">
+<div class="card mesa-card-container fade-in">
     <h2>MESAS</h2>
     <p class="section-description">Gerencie suas salas ativas ou ingresse em uma nova matriz de jogo.</p>
 
     <div class="mesas-list">
         {% if mesas %}
             {% for mesa in mesas %}
-                <div class="mesa-item">
+                <div class="mesa-item {{ loop.cycle('fade-in', 'fade-alt') }}">
                     <div class="mesa-details">
                         <strong class="mesa-title">{{ mesa.nome }}</strong>
                         <small class="mesa-code">
@@ -41,7 +41,7 @@
                 </div>
             {% endfor %}
         {% else %}
-            <div class="empty-state">
+            <div class="empty-state fade-in">
                 <p>Você ainda não participa de nenhuma mesa ativa.</p>
             </div>
         {% endif %}
@@ -68,7 +68,7 @@
     </div>
 </div>
 
-<div class="card entities-card">
+<div class="card entities-card fade-in">
     <div class="card-section-header">
         <h3>CONJURADOR</h3>
         <a href="/create/conjurador" class="btn btn-sm">Criar +</a>
@@ -85,7 +85,7 @@
             </thead>
             <tbody>
                 {% for conj in conjuradores %}
-                <tr>
+                <tr class="{{ loop.cycle('fade-in', 'fade-alt') }}">
                     <td class="font-bold">{{ conj.nome or conj.NOME or conj[1] }}</td>
                     <td><span class="table-tag">{{ conj.escola or conj.ESCOLA or conj[3] or "Sem Escola" }}</span></td>
                     <td>Grau {{ conj.grau or conj.GRAU or conj[4] }}</td>
@@ -104,7 +104,7 @@
     {% endif %}
 </div>
 
-<div class="card entities-card border-cyan">
+<div class="card entities-card border-cyan fade-alt">
     <div class="card-section-header">
         <h3>CONJURAÇÕES</h3>
         <a href="/create/conjuracao" class="btn btn-sm">Criar +</a>
@@ -121,7 +121,7 @@
             </thead>
             <tbody>
                 {% for conj in conjuracoes %}
-                <tr>
+                <tr class="{{ loop.cycle('fade-in', 'fade-alt') }}">
                     <td class="font-bold">{{ conj.nome or conj.NOME or conj[1] }}</td>
                     <td><span class="table-tag">{{ conj.matriz or conj.MATRIZ or conj[2] or "Sem Matriz" }}</span></td>
                     <td>{{ conj.custo or conj.CUSTO or conj[4] }} Conexão</td>
@@ -140,7 +140,7 @@
     {% endif %}
 </div>
 
-<div class="card entities-card">
+<div class="card entities-card fade-in">
     <div class="card-section-header">
         <h3>FAMILIARES</h3>
         <a href="/create/familiar" class="btn btn-sm">Criar +</a>
@@ -157,7 +157,7 @@
             </thead>
             <tbody>
                 {% for familiar in familiares %}
-                <tr>
+                <tr class="{{ loop.cycle('fade-in', 'fade-alt') }}">
                     <td class="font-bold">{{ familiar.nome or familiar.NOME or familiar[1] }}</td>
                     <td><span class="table-tag">{{ familiar.especie or familiar.ESPECIE or familiar[2] }}</span></td>
                     <td>Nível {{ familiar.ameaca or familiar.AMEACA or familiar[3] }}</td>
@@ -176,7 +176,7 @@
     {% endif %}
 </div>
 
-<div class="card entities-card">
+<div class="card entities-card fade-alt">
     <div class="card-section-header">
         <h3>RELÍQUIAS</h3>
         <a href="/create/reliquia" class="btn btn-sm">Criar +</a>
@@ -193,7 +193,7 @@
             </thead>
             <tbody>
                 {% for reliquia in reliquias %}
-                <tr>
+                <tr class="{{ loop.cycle('fade-in', 'fade-alt') }}">
                     <td class="font-bold">{{ reliquia.nome or reliquia.NOME or reliquia[1]}}</td>
                     <td>Nível {{ reliquia.nivel or reliquia.NIVEL or reliquia[2] }}</td>
                     <td><span class="table-tag">{{ reliquia.matriz or reliquia.MATRIZ or reliquia[3] }}</span></td>

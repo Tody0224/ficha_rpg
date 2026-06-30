@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">
+<div class="header fade-in">
     <h1>🐾 {% if entity %}EDITAR FAMILIAR{% else %}NOVO FAMILIAR{% endif %}</h1>
     <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
@@ -9,7 +9,7 @@
     
     <input type="hidden" name="action_type" id="action_type" value="pdf">
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>IDENTIFICAÇÃO DA CRIATURA</h3>
         <div class="form-group">
             <label>Nome do Familiar *</label>
@@ -42,7 +42,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>AFINIDADE ELEMENTAL & CARACTERÍSTICAS</h3>
         <div class="grid-2">
             <div class="form-group">
@@ -112,7 +112,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>HABILIDADES E CAPACIDADES</h3>
         <div class="form-group">
             <label>Habilidades Físicas / Traços Biológicos</label>
@@ -124,7 +124,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>DESCRIÇÃO GERAL</h3>
         <div class="form-group">
             <label>Descrição Biológica, Aparência e Histórico Narrativo</label>
@@ -169,9 +169,7 @@ function activateTestMode() {
     .catch(err => console.error("Erro ao rodar modo teste de familiar:", err));
 }
 
-// ─────────────────────────────────────────────────────────
-// CONTROLE DE SUBMISSÃO SEGURO (VERIFICA LOGIN ANTES)
-// ─────────────────────────────────────────────────────────
+
 function submeterFormulario(tipoAcao) {
     const formElement = document.getElementById('sheetForm');
     
@@ -204,9 +202,6 @@ function soliciarLoginFicha() {
     window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
 }
 
-// ─────────────────────────────────────────────────────────
-// SISTEMA GENÉRICO DE SALVAMENTO AUTOMÁTICO DE RASCUNHOS
-// ─────────────────────────────────────────────────────────
 const storageKey = "rascunho_ficha_" + window.location.pathname;
 const form = document.getElementById('sheetForm');
 
@@ -229,7 +224,7 @@ function salvarProgressoLocal() {
 
 function restaurarProgressoLocal() {
     const salvo = localStorage.getItem(storageKey);
-    if (!saved) return; // Fallback simples se estiver vazio
+    if (!saved) return;
     
     try {
         const dados = JSON.parse(salvo);
@@ -258,7 +253,7 @@ form.addEventListener('submit', function() {
 });
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Tenta restaurar rascunhos salvos, caso existam
+
     const salvo = localStorage.getItem(storageKey);
     if (salvo) restaurarProgressoLocal();
 });

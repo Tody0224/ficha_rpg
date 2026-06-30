@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="header">
-    <h1>💎 {% if entity %}EDITAR RELÍQUIA{% else %}NOVA RELÍQUIA{% endif %}</h1>
+<div class="header fade-in">
+    <h1>{% if entity %}EDITAR RELÍQUIA{% else %}NOVA RELÍQUIA{% endif %}</h1>
     <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
     
@@ -9,7 +9,7 @@
     
     <input type="hidden" name="action_type" id="action_type" value="pdf">
     
-    <div class="card">
+    <div class="card fade-in">
         <h3>IDENTIFICAÇÃO DO ARTEFATO</h3>
         <div class="form-group">
             <label>Nome da Relíquia *</label>
@@ -37,7 +37,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>VÍNCULOS ELEMENTAIS</h3>
         <div class="grid-2">
             <div class="form-group">
@@ -63,7 +63,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-in">
         <h3>PROPRIEDADES DE COMBATE</h3>
         <div class="grid-2">
             <div class="form-group">
@@ -86,7 +86,7 @@
         </div>
     </div>
 
-    <div class="card">
+    <div class="card fade-alt">
         <h3>DETALHAMENTO</h3>
         <div class="form-group">
             <label>Conjurações Gravadas / Matrizes Injetadas</label>
@@ -127,9 +127,6 @@ function activateTestMode() {
     .catch(err => console.error("Erro ao rodar modo teste de relíquia:", err));
 }
 
-// ─────────────────────────────────────────────────────────
-// CONTROLE DE SUBMISSÃO SEGURO (VERIFICA LOGIN ANTES)
-// ─────────────────────────────────────────────────────────
 function submeterFormulario(tipoAcao) {
     const formElement = document.getElementById('sheetForm');
     
@@ -162,9 +159,6 @@ function soliciarLoginFicha() {
     window.location.href = "/login?next=" + encodeURIComponent(window.location.pathname);
 }
 
-// ─────────────────────────────────────────────────────────
-// SISTEMA GENÉRICO DE SALVAMENTO AUTOMÁTICO DE RASCUNHOS
-// ─────────────────────────────────────────────────────────
 const storageKey = "rascunho_ficha_" + window.location.pathname;
 const form = document.getElementById('sheetForm');
 
