@@ -212,44 +212,6 @@
     {% endif %}
 </div>
 
-<style>
-    .hub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
-    .hub-header h1 { margin: 0; font-family: 'Georgia', serif; color: var(--text); font-size: 28px; }
-    .btn-sm { padding: 6px 12px !important; font-size: 12px !important; }
-    .btn-danger { background: #b91c1c !important; color: #f8fafc !important; }
-    .btn-danger:hover { background: #dc3545 !important; box-shadow: 0 0 10px rgba(220, 53, 69, 0.3) !important; }
-    .btn-glow { box-shadow: 0 0 10px rgba(11, 244, 163, 0.15); }
-    .mesa-card-container { border-top: 4px solid var(--accent); }
-    .mesa-card-container h2 { margin: 0 0 5px 0; font-size: 20px; color: var(--text); }
-    .section-description { color: var(--muted); margin: 0 0 20px 0; font-size: 14px; }
-    .mesas-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-    .mesa-item { padding: 16px; background: var(--panel); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
-    .mesa-title { color: var(--text); font-size: 16px; display: block; margin-bottom: 4px; }
-    .mesa-code { color: var(--muted); }
-    .clickable-code { background: var(--bg); padding: 3px 8px; border-radius: 4px; color: var(--accent); cursor: pointer; display: inline-block; border: 1px solid var(--border); font-family: monospace; font-size: 13px; transition: background 0.2s; }
-    .clickable-code:hover { background: var(--border); }
-    .mesa-actions { display: flex; gap: 8px; align-items: center; }
-    .inline-form { margin: 0; display: inline; }
-    .empty-state { text-align: center; padding: 30px; border: 2px dashed var(--border); border-radius: 6px; color: var(--muted); font-size: 14px; }
-    .divider { height: 1px; background: var(--border); margin: 25px 0; }
-    .mesas-forms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .hub-action-form label { display: block; color: var(--muted); margin-bottom: 8px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
-    .form-inline-group { display: flex; gap: 10px; }
-    .form-inline-group input { flex-grow: 1; }
-    .entities-card { border-top: 3px solid var(--accent); }
-    .entities-card.border-cyan { border-top-color: var(--accent); }
-    .card-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .card-section-header h3 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
-    .hub-table { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
-    .hub-table th { padding: 10px 8px; color: var(--muted); text-align: left; font-size: 13px; border-bottom: 2px solid var(--border); }
-    .hub-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
-    .font-bold { font-weight: bold; }
-    .table-tag { background: var(--panel); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; font-size: 12px; color: var(--text); }
-    .table-actions-cell { text-align: right; display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
-    .text-right { text-align: right !important; }
-    .empty-table-text { color: var(--muted); font-size: 13px; font-style: italic; margin: 10px 0 0 0; }
-</style>
-
 <script>
     function copiarTexto(elemento, codigo) {
         navigator.clipboard.writeText(codigo).then(() => {

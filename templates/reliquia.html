@@ -2,7 +2,7 @@
 {% block content %}
 <div class="header">
     <h1>💎 {% if entity %}EDITAR RELÍQUIA{% else %}NOVA RELÍQUIA{% endif %}</h1>
-    <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
+    <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
     
 <form id="sheetForm" action="{% if entity %}/save_and_process/{{ sheet_type }}/{{ entity.id }}{% else %}/save_and_process/{{ sheet_type }}{% endif %}" method="POST">
@@ -15,7 +15,7 @@
             <label>Nome da Relíquia *</label>
             <input type="text" name="NOME" id="NOME" value="{{ entity.nome if entity else '' }}" required>
         </div>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Nível da Relíquia *</label>
                 <select name="NIVEL" id="NIVEL" required>
@@ -39,7 +39,7 @@
 
     <div class="card">
         <h3>VÍNCULOS ELEMENTAIS</h3>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Matriz Fundamental *</label>
                 <select name="MATRIZ" id="MATRIZ" required>
@@ -65,7 +65,7 @@
 
     <div class="card">
         <h3>PROPRIEDADES DE COMBATE</h3>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Alcance Base *</label>
                 <select name="ALCANCE" id="ALCANCE" required>
@@ -80,7 +80,7 @@
                 <input type="text" name="DANO" id="DANO" placeholder="—" value="{{ entity.dano if entity else '' }}">
             </div>
         </div>
-        <div class="form-group" style="margin-top: 10px;">
+        <div class="form-group">
             <label>Familiar Vinculado (Se aplicável)</label>
             <input type="text" name="FAMILIAR" id="FAMILIAR" placeholder="Nome do Familiar vinculado a este artefato" value="{{ entity.familiar if entity else '' }}">
         </div>

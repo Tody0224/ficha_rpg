@@ -2,7 +2,7 @@
 {% block content %}
 <div class="header">
     <h1>🔮 {% if entity %}EDITAR CONJURAÇÃO{% else %}NOVA CONJURAÇÃO{% endif %}</h1>
-    <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
+    <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
 
 <form id="sheetForm" action="{% if entity %}/save_and_process/{{ sheet_type }}/{{ entity.id }}{% else %}/save_and_process/{{ sheet_type }}{% endif %}" method="POST">
@@ -15,7 +15,7 @@
             <label>Nome da Conjuração *</label>
             <input type="text" name="NOME" id="NOME" value="{{ entity.nome if entity else '' }}" required>
         </div>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Matriz Fundamental *</label>
                 <select name="MATRIZ" id="MATRIZ" required>

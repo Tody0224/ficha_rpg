@@ -2,7 +2,7 @@
 {% block content %}
 <div class="header">
     <h1>{% if entity %}EDITAR CONJURADOR{% else %}FICHA DE CONJURADOR{% endif %}</h1>
-    <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
+    <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
 
 <form id="sheetForm" action="{% if entity %}/save_and_process/{{ sheet_type }}/{{ entity.id }}{% else %}/save_and_process/{{ sheet_type }}{% endif %}" method="POST">
@@ -52,20 +52,20 @@
             
             <div class="form-group"><label>Astúcia</label><input type="number" class="attr-input" name="ASTÚCIA" id="ASTÚCIA" value="{{ entity.astucia if entity else (entity.ASTÚCIA if entity else '1') }}" min="0" max="3" onchange="updatePericiasCount()"></div>
         </div>
-        <div style="margin-top: 15px; background: var(--panel); padding: 10px; border-radius: 4px;">
+        <div class="resource-box">
             <button type="button" class="btn btn-secondary" onclick="calculateResources()">⚄ Calcular Recursos</button>
-            <span id="resourceOutput" style="font-weight: bold; color: var(--accent); margin-left: 10px;"></span>
+            <span id="resourceOutput" class="resource-output"></span>
         </div>
     </div>
 
     <div class="card">
-        <h3>PERÍCIAS DISPONÍVEIS <span id="periciasCount" style="font-size: 14px; color: var(--accent2); float: right;"></span></h3>
+        <h3>PERÍCIAS DISPONÍVEIS <span id="periciasCount" class="pericias-count"></span></h3>
         <div class="checkbox-group">
             {% for p in constants.PERICIAS_DISP %}
             <div class="checkbox-item">
                 <input type="checkbox" name="pericias" value="{{ p }}" id="p_{{ p }}" onchange="validatePericiasLimit(this)"
                 {% if entity and (p in entity.pericias or (entity.PERICIAS and p in entity.PERICIAS)) %}checked{% endif %}>
-                <label style="margin: 0;" for="p_{{ p }}">{{ p }}</label>
+                <label for="p_{{ p }}">{{ p }}</label>
             </div>
             {% endfor %}
         </div>

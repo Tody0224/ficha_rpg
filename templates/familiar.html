@@ -2,7 +2,7 @@
 {% block content %}
 <div class="header">
     <h1>🐾 {% if entity %}EDITAR FAMILIAR{% else %}NOVO FAMILIAR{% endif %}</h1>
-    <a href="/" style="color: var(--accent2); text-decoration: none; font-size: 13px;">← Voltar ao Menu</a>
+    <a href="/" class="link-voltar">← Voltar ao Menu</a>
 </div>
 
 <form id="sheetForm" action="{% if entity %}/save_and_process/{{ sheet_type }}/{{ entity.id }}{% else %}/save_and_process/{{ sheet_type }}{% endif %}" method="POST">
@@ -15,7 +15,7 @@
             <label>Nome do Familiar *</label>
             <input type="text" name="NOME" id="NOME" value="{{ entity.nome if entity else '' }}" required>
         </div>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Espécie Base *</label>
                 <input type="text" name="ESPECIE" id="ESPECIE" placeholder="Ex: Lobo, Corvo, Serpente" value="{{ entity.especie if entity else (entity.ESPECIE if entity else '') }}" required>
@@ -25,7 +25,7 @@
                 <input type="number" name="AMEACA" id="AMEACA" value="{{ entity.ameaca if entity else '1' }}" min="1" max="10" required>
             </div>
         </div>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Porte *</label>
                 <select name="PORTE" id="PORTE" required>
@@ -44,7 +44,7 @@
 
     <div class="card">
         <h3>AFINIDADE ELEMENTAL & CARACTERÍSTICAS</h3>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Matriz Fundamental *</label>
                 <select name="MATRIZ" id="MATRIZ" required>
@@ -90,7 +90,7 @@
                 </select>
             </div>
         </div>
-        <div class="grid-3" style="grid-template-columns: repeat(2, 1fr);">
+        <div class="grid-2">
             <div class="form-group">
                 <label>Hábito Biológico *</label>
                 <select name="HABITO" id="HABITO" required>

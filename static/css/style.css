@@ -1,0 +1,235 @@
+/* ============================================================
+   style.css — Folha de estilos única do projeto CONJURADORES
+   Consolidado a partir dos estilos inline e blocos <style>
+   espalhados pelos templates.
+   ============================================================ */
+
+/* ---------- Variáveis globais ---------- */
+:root {
+    --bg: #0a0f18;
+    --panel: #111a24;
+    --card: #16222f;
+    --border: #233547;
+    --accent: #20bf55;
+    --accent2: #0bf4a3;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+}
+
+/* ---------- Base ---------- */
+body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+/* ---------- Navbar fixa superior ---------- */
+.main-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 75px;
+    background-color: rgba(17, 26, 36, 0.95);
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(11, 244, 163, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    z-index: 9999;
+}
+
+.nav-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.nav-logo-link {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.nav-logo {
+    height: 65px;
+    width: auto;
+    transition: transform 0.3s ease;
+}
+
+.nav-logo:hover { transform: scale(1.05); }
+
+.nav-right-side {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.nav-status-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+}
+
+.nav-user-label {
+    margin: 0;
+    font-size: 13px;
+    color: var(--muted);
+}
+.nav-user-label strong { color: var(--accent); }
+.nav-user-label.visitor { color: #f59e0b; font-style: italic; }
+
+.nav-online-count {
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: bold;
+    margin-top: 2px;
+    letter-spacing: 0.5px;
+}
+
+.nav-auth-actions { display: flex; gap: 8px; }
+
+.btn-nav {
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-nav-primary { background: var(--accent); color: var(--bg); border: none; }
+.btn-nav-primary:hover { background: var(--accent); }
+.btn-nav-secondary { background: var(--panel); color: var(--muted); border: 1px solid var(--border); }
+.btn-nav-secondary:hover { background: var(--border); color: var(--text); }
+.btn-nav-danger { background: #b91c1c; color: #f8fafc; border: none; }
+.btn-nav-danger:hover { background: #dc3545; }
+
+/* ---------- Layout geral ---------- */
+.container { max-width: 800px; margin: 105px auto 40px auto; padding: 0 20px; }
+.header { border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 25px; }
+.header h1 { color: var(--accent); font-family: 'Georgia', serif; margin: 0; letter-spacing: 1px; text-shadow: 0 0 10px rgba(11, 244, 163, 0.2); }
+.card { background: var(--card); border: 1px solid var(--border); border-top: 3px solid var(--accent); padding: 20px; margin-bottom: 20px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+
+/* ---------- Formulários ---------- */
+.form-group { margin-bottom: 15px; display: flex; flex-direction: column; }
+label { font-weight: bold; margin-bottom: 6px; color: var(--muted); font-size: 13px; letter-spacing: 0.5px; }
+input, select, textarea { background: var(--panel); color: var(--text); border: 1px solid var(--border); padding: 10px; border-radius: 4px; font-size: 14px; box-sizing: border-box; transition: border-color 0.2s, box-shadow 0.2s; }
+input[type="text"], input[type="number"], select, textarea { width: 100%; }
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 8px rgba(11, 244, 163, 0.2); outline: none; }
+
+.btn { background: var(--accent); color: var(--bg); font-weight: bold; border: none; padding: 12px 24px; cursor: pointer; border-radius: 4px; font-size: 14px; transition: all 0.2s; }
+.btn:hover { background: var(--accent); color: var(--bg); box-shadow: 0 0 12px rgba(11, 244, 163, 0.3); }
+.btn-secondary { background: var(--panel); color: var(--muted); border: 1px solid var(--border); margin-right: 10px; }
+.btn-secondary:hover { background: var(--border); color: var(--text); }
+
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+.checkbox-group { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.checkbox-item { display: flex; align-items: center; font-size: 13px; }
+.checkbox-item input { margin-right: 8px; width: auto !important; height: auto !important; }
+.checkbox-item label { margin: 0; }
+
+.form-actions-group { display: flex; gap: 12px; margin-top: 25px; width: 100%; }
+.form-actions-group .btn { flex: 1; padding: 14px 16px; font-size: 14px; text-align: center; white-space: nowrap; }
+.form-actions-group .btn-secondary { background: var(--panel); color: var(--text); border: 1px solid var(--border); margin: 0; }
+.form-actions-group .btn-secondary:hover { background: var(--border); border-color: var(--accent2); color: var(--accent2); }
+
+/* Link "Voltar ao Menu" usado nas fichas */
+.link-voltar { color: var(--accent2); text-decoration: none; font-size: 13px; }
+
+/* Caixa de cálculo de recursos (conjurador.html) */
+.resource-box { margin-top: 15px; background: var(--panel); padding: 10px; border-radius: 4px; }
+.resource-output { font-weight: bold; color: var(--accent); margin-left: 10px; }
+
+/* Contador de perícias (conjurador.html) */
+.pericias-count { font-size: 14px; color: var(--accent2); float: right; }
+
+/* ---------- Hub (templates/hub.html) ---------- */
+.hub-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+.hub-header h1 { margin: 0; font-family: 'Georgia', serif; color: var(--text); font-size: 28px; }
+.btn-sm { padding: 6px 12px !important; font-size: 12px !important; }
+.btn-danger { background: #b91c1c !important; color: #f8fafc !important; }
+.btn-danger:hover { background: #dc3545 !important; box-shadow: 0 0 10px rgba(220, 53, 69, 0.3) !important; }
+.btn-glow { box-shadow: 0 0 10px rgba(11, 244, 163, 0.15); }
+.mesa-card-container { border-top: 4px solid var(--accent); }
+.mesa-card-container h2 { margin: 0 0 5px 0; font-size: 20px; color: var(--text); }
+.section-description { color: var(--muted); margin: 0 0 20px 0; font-size: 14px; }
+.mesas-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+.mesa-item { padding: 16px; background: var(--panel); border-radius: 6px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
+.mesa-title { color: var(--text); font-size: 16px; display: block; margin-bottom: 4px; }
+.mesa-code { color: var(--muted); }
+.clickable-code { background: var(--bg); padding: 3px 8px; border-radius: 4px; color: var(--accent); cursor: pointer; display: inline-block; border: 1px solid var(--border); font-family: monospace; font-size: 13px; transition: background 0.2s; }
+.clickable-code:hover { background: var(--border); }
+.mesa-actions { display: flex; gap: 8px; align-items: center; }
+.inline-form { margin: 0; display: inline; }
+.empty-state { text-align: center; padding: 30px; border: 2px dashed var(--border); border-radius: 6px; color: var(--muted); font-size: 14px; }
+.divider { height: 1px; background: var(--border); margin: 25px 0; }
+.mesas-forms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.hub-action-form label { display: block; color: var(--muted); margin-bottom: 8px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }
+.form-inline-group { display: flex; gap: 10px; }
+.form-inline-group input { flex-grow: 1; }
+.entities-card { border-top: 3px solid var(--accent); }
+.entities-card.border-cyan { border-top-color: var(--accent); }
+.card-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+.card-section-header h3 { margin: 0; font-size: 16px; letter-spacing: 0.5px; }
+.hub-table { width: 100%; border-collapse: collapse; margin-top: 5px; table-layout: fixed; }
+.hub-table th { padding: 10px 8px; color: var(--muted); text-align: left; font-size: 13px; border-bottom: 2px solid var(--border); }
+.hub-table td { padding: 12px 8px; border-bottom: 1px solid var(--border); font-size: 14px; vertical-align: middle; }
+.font-bold { font-weight: bold; }
+.table-tag { background: var(--panel); border: 1px solid var(--border); padding: 4px 10px; border-radius: 4px; font-size: 12px; color: var(--text); }
+.table-actions-cell { text-align: right; display: flex; justify-content: flex-end; gap: 6px; align-items: center; }
+.text-right { text-align: right !important; }
+.empty-table-text { color: var(--muted); font-size: 13px; font-style: italic; margin: 10px 0 0 0; }
+
+/* ---------- Detalhes da mesa (templates/mesa_detalhes.html) ---------- */
+.mesa-page { max-width: 800px; margin: 0 auto; padding: 20px; }
+.mesa-card { background: #1e293b; padding: 20px; border-radius: 12px; margin-bottom: 25px; border-top: 4px solid #3b82f6; }
+.mesa-card-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 15px; }
+.mesa-title-row { display: flex; align-items: center; gap: 10px; }
+.mesa-title-row h2 { margin: 0; color: #fff; }
+.mesa-code-row { margin-top: 8px; display: flex; gap: 15px; align-items: center; }
+.mesa-code-row small { color: #94a3b8; }
+.mesa-code-box { background: #0f172a; padding: 5px 8px; border-radius: 4px; color: #38bdf8; font-weight: bold; font-size: 1.2rem; }
+.btn-copy-code { background: #334155; color: #cbd5e1; border: none; padding: 5px 10px; margin-left: 5px; border-radius: 4px; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: 0.2s; }
+.mesa-header-actions { display: flex; gap: 10px; }
+.btn-voltar-menu { background: #64748b; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: inline-block; }
+.btn-excluir-mesa { background: #ef4444; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+.btn-abandonar-mesa { background: #b91c1c; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+.membros-title { color: #94a3b8; margin-bottom: 15px; }
+.jogador-card { background: #0f172a; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #334155; }
+.jogador-card.is-master { border-left-color: #f59e0b; }
+.jogador-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.jogador-name-row { display: flex; align-items: center; gap: 10px; }
+.jogador-name-row h3 { margin: 0; color: #ffffff; }
+.badge-mestre { background: #f59e0b; color: #000; font-size: 0.7rem; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+.status-badge { font-size: 0.8rem; font-weight: bold; color: #64748b; }
+.fichas-list { list-style: none; padding: 0; margin: 0; }
+.ficha-item { background: #1e293b; padding: 10px; margin-bottom: 5px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+.ficha-tipo { color: #64748b; }
+.ver-ficha-link { color: #3b82f6; text-decoration: none; font-size: 0.85rem; font-weight: bold; }
+.sem-fichas-text { color: #64748b; font-style: italic; font-size: 0.9rem; margin: 0; }
+.empty-mesa-box { text-align: center; padding: 30px; border: 2px dashed #334155; border-radius: 8px; }
+.empty-mesa-box p { color: #64748b; margin: 0; font-style: italic; }
+
+/* ---------- Autenticação (login.html / register.html) ---------- */
+.auth-page { max-width: 400px; margin: 80px auto; padding: 0 15px; }
+.auth-card-accent { border-top: 4px solid var(--accent); }
+.auth-card-accent2 { border-top: 4px solid var(--accent2); }
+.auth-card-title { text-align: center; margin-bottom: 20px; }
+.auth-form-group-spaced { margin-top: 15px; }
+.auth-submit-btn { width: 100%; margin-top: 20px; }
+.auth-submit-btn.accent2 { font-weight: bold; background: var(--accent2); color: #000; }
+.auth-footer { margin-top: 20px; text-align: center; font-size: 13px; border-top: 1px solid var(--border); padding-top: 15px; }
+.auth-footer a, .auth-footer-login a { color: var(--accent); text-decoration: none; font-weight: bold; }
+
+.flash-msg { padding: 10px; border-radius: 4px; margin-bottom: 15px; font-size: 13px; }
+.flash-success { background: rgba(85, 255, 85, 0.1); color: #55ff55; border-left: 3px solid #55ff55; }
+.flash-error { background: rgba(255, 85, 85, 0.1); color: #ff5555; border-left: 3px solid #ff5555; }
+.flash-banner-login { background: rgb(38, 159, 67); color: rgb(26, 42, 56); border-left: 3px solid #000000; }
+.muted-text { color: var(--muted); }
